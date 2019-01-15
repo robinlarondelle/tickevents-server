@@ -1,5 +1,6 @@
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
+const queries = require("../database/queries/auth.queries")
 
 passport.use(new LocalStrategy({
   usernameField: "email"

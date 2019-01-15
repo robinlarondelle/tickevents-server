@@ -4,15 +4,15 @@ if(process.env.NODE_ENV === "development") require("dotenv").config({path: "../e
 const express = require('express')
 const morgan = require("morgan")
 const bodyParser = require('body-parser')
-const cors = require("cors")
 const passport = require("passport")
 
 const port = process.env.PORT || "3000"
 const app = express() 
 
+const authRoutes = require("./routes/auth.routes")
+
 app.use(bodyParser.json())
 app.use(morgan("dev"))
-app.use(cors({ origin: "*" }))
 app.use(passport.initialize())
 
 app.use("/api", authRoutes)

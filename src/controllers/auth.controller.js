@@ -1,5 +1,5 @@
 const passport = require("passport")
-const ApiMessage = require("../models/ApiMessage.model")
+const ApiMessage = require("../models/ApiMessage")
 
 module.exports = {
   login(req, res, next) {
