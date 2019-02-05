@@ -17,12 +17,22 @@ app.use(morgan("dev"))
 app.use(passport.initialize())
 
 
-modelDb.sync().then(() => {
-  identityDb.sync().then(() => {
-    console.log("Models database Synced successfully...")
-    console.log("Identity database Synced successfully...")
-  }).catch(err => console.log("An error occured when syncing the identity database: \n\n" + err))
-}).catch(err => console.log("An error occured when syncing the database: \n\n" + err))
+// If in development mode, we want to force dropping of tables
+if (process.env.NODE_ENV === "development") {
+  modelDb.sync({force: true, logging: false}).then(() => { //Dropping all tables first, then adding them again
+    identityDb.sync({force: true, logging: false}).then(() => {
+      console.log("Models database Synced successfully")
+      console.log("Identity database Synced successfully")
+    }).catch(err => console.log("An error occured when syncing the identity database: \n\n" + err))
+  }).catch(err => console.log("An error occured when syncing the database: \n\n" + err))
+} else {
+  modelDb.sync({force: false, logging: false}).then(() => { //Just update tables, dont drop data!
+    identityDb.sync({force: false, logging: false}).then(() => {
+      console.log("Models database Synced successfully")
+      console.log("Identity database Synced successfully")
+    }).catch(err => console.log("An error occured when syncing the identity database: \n\n" + err))
+  }).catch(err => console.log("An error occured when syncing the database: \n\n" + err))
+}
 
 // Routes
 const authRoutes = require("./routes/auth.routes")
