@@ -1,7 +1,7 @@
 const Sequelize = require("sequelize")
-const db = require("../config/models-database")
+const db = require("../config/identity-database")
 
-const event = db.define("event", {
+const identityUser = db.define("identity-user", {
   id: {
     autoIncrement: true,
     primaryKey: true,
@@ -9,4 +9,4 @@ const event = db.define("event", {
   }
 })
 
-module.exports = event;
+module.exports = identityUser

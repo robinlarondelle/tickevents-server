@@ -1,10 +1,11 @@
 const passport = require("passport")
 const ApiMessage = require("../models/ApiMessage")
 const Sequelize = require("sequelize")
-const db = require("../config/database")
+const db = require("../config/models-database")
 const User = require("../models/user.model")
 const Ticket = require("../models/ticket.model")
 const Event = require("../models/event.model")
+const IdentityUser = require("../models/identity.user.model")
 
 module.exports = {
   login(req, res, next) {
@@ -18,18 +19,6 @@ module.exports = {
   },
 
   login1(req, res, next) {
-    User.findAll().then(users => {
-      Ticket.findAll().then(tickets => {
-        Event.findAll().then(events => {
-          res.status(200).send(
-            {
-              message: "Hello",
-              users: users,
-              tickets: tickets,
-              events: events
-            }).end()
-        })
-      })
-    })
+
   }
 }

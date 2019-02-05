@@ -1,4 +1,4 @@
-require("dotenv").config({path: "./environment/environment.env"}) //Get the environment file
+require("dotenv").config({ path: "./environment/environment.env" }) //Get the environment file
 console.log("API running in " + process.env.NODE_ENV + " mode")
 
 const express = require('express') //HTTP request framework
@@ -6,16 +6,23 @@ const morgan = require("morgan")
 const bodyParser = require('body-parser') //Pase request body to JSON
 const passport = require("passport") // Passport.js to secure the API
 
-const db = require("./config/database")
+const modelDb = require("./config/models-database")
+const identityDb = require("./config/identity-database")
 const port = process.env.PORT || "3000"
-const app = express() 
+const app = express()
 
 // Setup express app
 app.use(bodyParser.json())
 app.use(morgan("dev"))
 app.use(passport.initialize())
 
-db.sync()
+
+modelDb.sync().then(() => {
+  identityDb.sync().then(() => {
+    console.log("Models database Synced successfully...")
+    console.log("Identity database Synced successfully...")
+  }).catch(err => console.log("An error occured when syncing the identity database: \n\n" + err))
+}).catch(err => console.log("An error occured when syncing the database: \n\n" + err))
 
 // Routes
 const authRoutes = require("./routes/auth.routes")

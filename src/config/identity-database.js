@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize')
 const env = process.env.NODE_ENV || "development"
-const config = require("../config/config.json")[env] // Get the object matching the current NODE_ENV
+const config = require("../config/config.json")[env].identity // Get the object matching the current NODE_ENV
 
 //Setup Sequelize witht the config credentials
 module.exports = new Sequelize(
