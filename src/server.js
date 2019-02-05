@@ -6,6 +6,7 @@ const morgan = require("morgan")
 const bodyParser = require('body-parser') //Pase request body to JSON
 const passport = require("passport") // Passport.js to secure the API
 
+const db = require("./config/database")
 const port = process.env.PORT || "3000"
 const app = express() 
 
@@ -14,11 +15,17 @@ app.use(bodyParser.json())
 app.use(morgan("dev"))
 app.use(passport.initialize())
 
+db.sync()
+
 // Routes
 const authRoutes = require("./routes/auth.routes")
+const ticketRoutes = require("./routes/ticket.routes")
+const eventRoutes = require("./routes/event.routes")
 
 // Endpoints
 app.use("/api", authRoutes)
+app.use("/api/tickets", ticketRoutes)
+app.use("/api/events", eventRoutes)
 
 //Catch all non existing endpoints
 app.use("*", function (req, res, next) {
