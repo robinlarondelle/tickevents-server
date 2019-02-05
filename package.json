@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "SET NODE_ENV=development& nodemon -r dotenv/config ./src/server.js dotenv_config_path=./src/config/dev.enviroment.env"
+    "start": "nodemon ./src/server.js"
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
     "express": "^4.16.4",
     "mocha": "^5.2.0",
     "morgan": "^1.9.1",
+    "mysql": "^2.16.0",
     "nodemon": "^1.18.6",
     "passport": "^0.4.0",
     "supertest": "^3.3.0"

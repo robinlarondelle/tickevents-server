@@ -61,3 +61,5 @@ environment/
 
 # next.js build output
 .next
+
+.vscode/
