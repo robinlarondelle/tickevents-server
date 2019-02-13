@@ -11,14 +11,14 @@ passport.use(new LocalStrategy({ usernameField: "email" }, (email, password, don
         return done(null, user) //The credentials are valid
       } else done(null, false, "Incorrect Password")
     } else return done(null, false, "Incorrect email")
-  }).catch(err => {return done(null, false, "Error: " + err)})
+  }).catch(err => { return done(null, false, "Error: " + err) })
 }))
 
 //If the hashed password equals the saved hashed password, then it must be equal. This way, we dont have to save the password to the db
 function validatePassword(user, password) {
   const { passwordSalt } = user
   const hash = crypto.pbkdf2Sync(password, passwordSalt, 1000, 64, "sha256").toString("hex")
-  
+
   return user.passwordHash === hash
 }
 
