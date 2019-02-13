@@ -1,7 +1,7 @@
 const passport = require("passport")
 const ApiMessage = require("../util/ApiMessage")
 const crypto = require("crypto")
-let jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken")
 const IdentityUser = require("../models/identity.user.model")
 
 module.exports = {
