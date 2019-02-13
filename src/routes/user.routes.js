@@ -6,7 +6,7 @@ const auth = jwt({
   requestProperty: 'payload'
 })
 
-routes.get("/", auth, userController.getUsers)
+routes.get("/", userController.getUsers)
 
 
 module.exports = routes

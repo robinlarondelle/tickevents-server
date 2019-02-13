@@ -5,7 +5,7 @@ const express = require('express') //HTTP request framework
 const morgan = require("morgan")
 const bodyParser = require('body-parser') //Pase request body to JSON
 const passport = require("./config/passport/passport") // Passport.js to secure the API
-const session = require("express-session") // Use a session to manage users
+const jwt = require("jsonwebtoken")
 
 const modelDb = require("./config/models-database")
 const identityDb = require("./config/identity-database")
@@ -26,9 +26,26 @@ const userRoutes = require("./routes/user.routes")
 const ticketRoutes = require("./routes/ticket.routes")
 const eventRoutes = require("./routes/event.routes")
 
-// Endpoints
+
+// Unsecured Endpoints
 app.use("/api", authRoutes)
-// app.all("*", passport.authenticate('local'))
+
+//Endpoint security middleware using jwt
+app.use("*", function(req, res, next) {  
+  const token = req.headers["x-access-token"] //Fetch token from header
+  if (token) {
+
+    jwt.verify(token, process.env.SECRET, (err, decoded) => {
+      if (!err) {
+        req.payload = decoded //Set payload as a request property to use later
+        next()
+      } else next(new ApiMessage("Error: " + err, 401))
+    })
+
+  } else next(new ApiMessage("No token provided. Access denied", 401))
+})
+
+//Secured endpoints
 app.use("/api/users", userRoutes)
 app.use("/api/tickets", ticketRoutes)
 app.use("/api/events", eventRoutes)
@@ -42,20 +59,18 @@ app.use("*", function (req, res, next) {
 
 //Error endpoint
 app.use((err, req, res, next) => {
-  res.status(err.code || 404).json(err).send();
+  res.status(err.status || 404).json(err).send();
 })
 
 
-// If in development mode, we want to force dropping of tables
+//Sync the database first, then run the server
 modelDb.sync({ force: false, logging: false }).then(() => {
   console.log("Models database Synced successfully")
   identityDb.sync({ force: false, logging: false }).then(() => {
     console.log("Identity database Synced successfully")
 
     //Setup server on designated port
-    app.listen(port, () => {
-      console.log("Server is running on port: " + port)
-    })
+    app.listen(port, () => console.log("Server is running on port: " + port))
 
   }).catch(err => console.log("An error occured when syncing the identity database: \n\n" + err))
 }).catch(err => console.log("An error occured when syncing the database: \n\n" + err))
