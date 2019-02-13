@@ -12,11 +12,15 @@ const IdentityUser = require("../models/identity.user.model")
 module.exports = {
   loginUser(req, res, next) {
     passport.authenticate("local", (err, user, info) => {
-      if (!err) {
+      if (!err) {        
         if (user) {
-          res.status(200).json({ token: genereateToken(user) }).end()
-        } else next(new ApiMessage("Geen gebruiker gevonden. info: " + info, 404))
-      } else next(new ApiMessage("Error: " + err, 400))
+          
+          const payload = {
+            token: generateToken(user)
+          }            
+          res.status(200).json(payload).end()
+        } else next(new ApiMessage(info, 401))
+      } else next(new ApiMessage("Error: " + err, 404))
     })(req, res)
   },
 
@@ -26,23 +30,22 @@ module.exports = {
 
       IdentityUser.findOne({where: {email: email}}).then(user => {        
         if (!user) {
+
           const passwordSalt = crypto.randomBytes(16).toString("hex")
           const passwordHash = crypto.pbkdf2Sync(req.body.password, passwordSalt, 1000, 64, "sha256").toString("hex") 
           IdentityUser.create({email, passwordHash, passwordSalt}).then(user => {
-            console.log(user.email);
             const payload = {
-              token: genereateToken(user)
-            }
+              token: generateToken(user)
+            }            
             res.status(200).json(payload).end()
           })} 
-        else next(new ApiMessage("Email already exists"))})
-    } else next(new ApiMessage("Passwords don't match", 401))
 
-    
+        else next(new ApiMessage("Email already exists", 401))})
+    } else next(new ApiMessage("Passwords don't match", 401))
   }
 }
 
-function genereateToken(user)  {  
+function generateToken(user)  {  
     let exp = new Date()
     exp.setDate(exp.getDate() + 7)  
     

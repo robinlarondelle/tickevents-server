@@ -47,9 +47,9 @@ app.use((err, req, res, next) => {
 
 
 // If in development mode, we want to force dropping of tables
-modelDb.sync({ force: true, logging: false }).then(() => {
+modelDb.sync({ force: false, logging: false }).then(() => {
   console.log("Models database Synced successfully")
-  identityDb.sync({ force: true, logging: false }).then(() => {
+  identityDb.sync({ force: false, logging: false }).then(() => {
     console.log("Identity database Synced successfully")
 
     //Setup server on designated port
