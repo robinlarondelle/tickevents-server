@@ -31,24 +31,6 @@ const IdentityUser = db.define("identity-user", {
     validatePassword: function(password) {  
       let hash = crypto.pbkdf2Sync(password, this.salt, 1000, 64, "sha256").toString("hex")
       return this.hash === hash
-    },
-
-    generateToken: function() {   
-      let exp = new Date()
-      exp.setDate(exp.getDate() + 7)  
-      
-      const token = jwt.sign({
-        _id: this._id,
-        email: this.email,
-        firstname: this.firstname,
-        lastname: this.lastname,
-        role: this.role,
-        admin: this.admin,
-        driver: this.driver,
-        exp: parseInt(exp.getTime() / 1000)
-      }, process.env.SECRET)
-    
-      return token
     }
   }
 })

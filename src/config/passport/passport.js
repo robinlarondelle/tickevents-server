@@ -1,34 +1,24 @@
 const passport = require("passport")
+const crypto = require("crypto")
 const LocalStrategy = require("passport-local").Strategy;
 const IdentityUser = require("../../models/identity.user.model")
 
-
-passport.use(new LocalStrategy({ //Creating a new local stategy to log a user in with email and password
-  usernameField: "email"
-}, (email, password, done) => { // Callback function
-  IdentityUser.findOne({ where: { email } }).then(dbUser => {
-    if (!dbUser) return done(null, false, { message: "Incorrect email." }) //If no email found
-    else if (!dbUser.validPassword(password)) { //If no valid password
-      return done(null, false, { message: "Incorrect password." })
-    }
-
-    return done(null, dbUser);
+//Creating a new local stategy to log a user in with email and password
+passport.use(new LocalStrategy({ usernameField: "email" }, (email, password, done) => { // Callback function
+  IdentityUser.findOne({ where: { email } }).then(user => {
+    if (user) { //There exists a user with said password
+      if (validatePassword(user, password)) {
+        return (null, user) //The credentials are valid
+      } else done(null, false, { message: "Incorrect password." })
+    } else return done(null, false, { message: "Incorrect email." })
   })
+}))
+
+//If the hashed password equals the saved hashed password, then it must be equal. This way, we dont have to save the password to the db
+function validatePassword(user, password) {
+  let hash = crypto.pbkdf2Sync(password, this.salt, 1000, 64, "sha256").toString("hex")
+  return user.passwordHash === hash
 }
-))
-
-// In order to help keep authentication state across HTTP requests,
-// Sequelize needs to serialize and deserialize the user
-// Just consider this part boilerplate needed to make it all work
-passport.serializeUser((user, done) => {
-  done(null, user.id)
-})
-
-passport.deserializeUser((id, done) => {
-  User.findById(id, (err, user) => {
-    done(err, user)
-  })
-})
 
 // Exporting our configured passport
 module.exports = passport;
