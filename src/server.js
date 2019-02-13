@@ -9,22 +9,15 @@ const session = require("express-session") // Use a session to manage users
 
 const modelDb = require("./config/models-database")
 const identityDb = require("./config/identity-database")
+const ApiMessage = require("./util/ApiMessage")
 const port = process.env.PORT || "3000"
 const app = express()
 
 
 // Setup express app
-app.use(bodyParser.json())
-app.use(morgan("dev"))
+app.use(bodyParser.json()) //Parse request body to JSON
+if (process.env.NODE_ENV === "development") app.use(morgan("dev")) //Log requests to console if in development
 app.use(passport.initialize())
-
-app.use(session({
-  secret: process.env.SECRET,
-  resave: true,
-  saveUninitialized: true
-}))
-app.use(passport.initialize())
-app.use(passport.session())
 
 
 // Routes
@@ -35,6 +28,7 @@ const eventRoutes = require("./routes/event.routes")
 
 // Endpoints
 app.use("/api", authRoutes)
+// app.all("*", passport.authenticate('local'))
 app.use("/api/users", userRoutes)
 app.use("/api/tickets", ticketRoutes)
 app.use("/api/events", eventRoutes)
@@ -42,7 +36,7 @@ app.use("/api/events", eventRoutes)
 
 //Catch all non existing endpoints
 app.use("*", function (req, res, next) {
-  next(new ApiError("Endpoint not found", 404, Date.now()))
+  next(new ApiMessage("Endpoint not found", 404, Date.now()))
 })
 
 
@@ -53,9 +47,9 @@ app.use((err, req, res, next) => {
 
 
 // If in development mode, we want to force dropping of tables
-modelDb.sync({ force: true, logging: false }).then(() => { //Dropping all tables first, then adding them again
+modelDb.sync({ force: true, logging: false }).then(() => {
   console.log("Models database Synced successfully")
-  identityDb.sync({ force: true, logging: false }).then(() => { //TODO turn force off once models are defined
+  identityDb.sync({ force: true, logging: false }).then(() => {
     console.log("Identity database Synced successfully")
 
     //Setup server on designated port

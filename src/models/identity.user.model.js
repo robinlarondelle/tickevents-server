@@ -1,16 +1,59 @@
 const Sequelize = require("sequelize")
-const bcrypt = require("bcrypt-nodejs");
+const crypto = require("crypto")
+
 const db = require("../config/identity-database")
 
-const identityUser = db.define("identity-user", {
+const IdentityUser = db.define("identity-user", {
   id: {
     autoIncrement: true,
     primaryKey: true,
     type: Sequelize.INTEGER
+  },
+  
+  email: {
+    type: Sequelize.STRING,
+    validate: {
+      isEmail: true
+    },
+    unique: true
+  },
+
+  passwordHash: {
+    type: Sequelize.STRING
+  },
+
+  passwordSalt: {
+    type: Sequelize.STRING
+  }
+},
+{
+  instanceMethods: {
+    validatePassword: function(password) {  
+      let hash = crypto.pbkdf2Sync(password, this.salt, 1000, 64, "sha256").toString("hex")
+      return this.hash === hash
+    },
+
+    generateToken: function() {   
+      let exp = new Date()
+      exp.setDate(exp.getDate() + 7)  
+      
+      const token = jwt.sign({
+        _id: this._id,
+        email: this.email,
+        firstname: this.firstname,
+        lastname: this.lastname,
+        role: this.role,
+        admin: this.admin,
+        driver: this.driver,
+        exp: parseInt(exp.getTime() / 1000)
+      }, process.env.SECRET)
+    
+      return token
+    }
   }
 })
 
-module.exports = identityUser
+module.exports = IdentityUser
 
 // // Requiring bcrypt for password hashing. Using the bcrypt-nodejs version as the regular bcrypt module
 // // sometimes causes errors on Windows machines
