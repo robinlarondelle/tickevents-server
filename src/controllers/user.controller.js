@@ -42,15 +42,8 @@ module.exports = {
           }, 201))
           .end()
 
-      } else {
-        res
-          .status(200)
-          .json(new ApiMessage(`User with email ${body.Email} already exists`, 200))
-          .end()
-      }
-    }).catch(err => {
-      console.log(`Error occured: \n\n ${err}`);
-    })
+      } else next(new ApiMessage(`User with email ${body.Email} already exists`, 200))
+    }).catch(err => next(new ApiMessage(`Error occured: ${err}`, 501)))
   },
 
   //TBD

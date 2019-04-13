@@ -12,7 +12,7 @@ const identityDb = require("./config/identity-database")
 const ApiMessage = require("./util/ApiMessage")
 const port = process.env.PORT || "3000"
 const app = express()
-const forceDatabaseReset = false; //Tell Seuqelize to drop all data and update table structure
+const forceDatabaseReset = true; //Tell Seuqelize to drop all data and update table structure
 
 
 // Setup express app
@@ -25,7 +25,7 @@ app.use(passport.initialize())
 const authRoutes = require("./routes/auth.routes")
 const userRoutes = require("./routes/user.routes")  
 const ticketRoutes = require("./routes/ticket.routes")
-const eventRoutes = require("./routes/event.routes")
+const eventRoutes = require("./routes/event.routes")  
 
 
 // Unsecured Endpoints

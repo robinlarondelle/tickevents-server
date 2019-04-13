@@ -19,10 +19,7 @@ module.exports = {
 
   createEvent(req, res, next) {
     const body = req.body
-    const user_email = req.body.UserEmail
-    const date = body.EventDate
-    console.log(date);
-    
+    const user_email = req.body.UserEmail    
 
     User.findOne({ where: { email: user_email } }).then(user => {      
       Event.findOrCreate({

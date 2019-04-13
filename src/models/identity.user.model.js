@@ -2,13 +2,13 @@ const Sequelize = require("sequelize")
 const db = require("../config/identity-database")
 
 const IdentityUser = db.define("identity-users", {
-  ID: {
+  IdentityUserID: {
     autoIncrement: true,
     primaryKey: true,
     type: Sequelize.INTEGER
   },
 
-  EMAIL: {
+  Email: {
     type: Sequelize.STRING,
     validate: {
       isEmail: true
@@ -16,26 +16,26 @@ const IdentityUser = db.define("identity-users", {
     unique: true
   },
 
-  FIRSTNAME: {
+  FirstName: {
     type: Sequelize.STRING,
     allowNull: false
   },
 
-  LASTNAME: {
+  LastName: {
     type: Sequelize.STRING,
     allowNull: false
   },
 
-  EMAIL_CONFIRMED_YN: {
+  EmailConfirmedYN: {
     type: Sequelize.BOOLEAN,
     defaultValue: false
   },
 
-  PASSWORD_HASH: {
+  PasswordHash: {
     type: Sequelize.STRING
   },
 
-  PASSWORD_SALT: {
+  PasswordSalt: {
     type: Sequelize.STRING
   }
 })
