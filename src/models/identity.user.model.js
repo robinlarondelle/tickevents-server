@@ -1,7 +1,7 @@
 const Sequelize = require("sequelize")
 const db = require("../config/identity-database")
 
-const IdentityUser = db.define("identity-user", {
+const IdentityUser = db.define("identity-users", {
   ID: {
     autoIncrement: true,
     primaryKey: true,
