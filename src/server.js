@@ -1,5 +1,5 @@
 require("dotenv").config({ path: "./environment/environment.env" }) //Get the environment file
-console.log("API running in " + process.env.NODE_ENV + " mode")
+console.log("\nAPI running in " + process.env.NODE_ENV + " mode \n" )
 
 const express = require('express') //HTTP request framework
 const morgan = require("morgan")
@@ -12,6 +12,7 @@ const identityDb = require("./config/identity-database")
 const ApiMessage = require("./util/ApiMessage")
 const port = process.env.PORT || "3000"
 const app = express()
+const forceDatabaseReset = true; //Tell Seuqelize to drop all data and update table structure
 
 
 // Setup express app
@@ -64,15 +65,15 @@ app.use((err, req, res, next) => {
 
 
 //Sync the database first, then run the server
-modelDb.sync({ force: false, logging: false }).then(() => {
-  console.log("Models database Synced successfully")
-  identityDb.sync({ force: false, logging: false }).then(() => {
-    console.log("Identity database Synced successfully")
+modelDb.sync({ force: forceDatabaseReset, logging: false }).then(() => {
+  console.log(`Models database Synced successfully. Reset Database: ${forceDatabaseReset}`)
+  identityDb.sync({ force: forceDatabaseReset, logging: false }).then(() => {
+    console.log(`Identity database Synced successfully. Reset Database: ${forceDatabaseReset}\n`)
 
     //Setup server on designated port
     app.listen(port, () => console.log("Server is running on port: " + port))
 
-  }).catch(err => console.log("An error occured when syncing the identity database: \n\n" + err))
-}).catch(err => console.log("An error occured when syncing the database: \n\n" + err))
+  }).catch(err => console.log("\n\nAn error occured when syncing the identity database: \n\n" + err))
+}).catch(err => console.log("\n\nAn error occured when syncing the database: \n\n" + err))
 
 module.exports = app

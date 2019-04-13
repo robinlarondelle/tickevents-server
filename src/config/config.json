@@ -31,10 +31,10 @@
   },
   "test": {
     "models": {
-      "username": "",
+      "username": "root",
       "password": null,
-      "database": "",
-      "host": "",
+      "database": "ticketstore_test",
+      "host": "127.0.0.1",
       "dialect": "mysql",
       "operatorsAliases": false,
       "pool": {
@@ -45,10 +45,10 @@
       }
     },
     "identity": {
-      "username": "",
+      "username": "root",
       "password": null,
-      "database": "",
-      "host": "",
+      "database": "ticketstore_test_identity",
+      "host": "127.0.0.1",
       "dialect": "mysql",
       "operatorsAliases": false,
       "pool": {
