@@ -12,7 +12,8 @@
         "min": 0,
         "acquire": 30000,
         "idle": 10000
-      }
+      },
+      "logging": false
     },
     "identity": {
       "username": "root",
@@ -26,7 +27,8 @@
         "min": 0,
         "acquire": 30000,
         "idle": 10000
-      }
+      },
+      "logging": false
     }
   },
   "test": {
@@ -42,7 +44,8 @@
         "min": 0,
         "acquire": 30000,
         "idle": 10000
-      }
+      },
+      "logging": false
     },
     "identity": {
       "username": "root",
@@ -56,7 +59,8 @@
         "min": 0,
         "acquire": 30000,
         "idle": 10000
-      }
+      },
+      "logging": false
     }
   },
   "production": {
@@ -72,7 +76,8 @@
         "min": 0,
         "acquire": 30000,
         "idle": 10000
-      }
+      },
+      "logging": false
     },
     "identity": {
       "username": "",
@@ -86,7 +91,8 @@
         "min": 0,
         "acquire": 30000,
         "idle": 10000
-      }
+      },
+      "logging": false
     }
   }
 }

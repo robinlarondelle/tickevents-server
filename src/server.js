@@ -12,7 +12,7 @@ const identityDb = require("./config/identity-database")
 const ApiMessage = require("./util/ApiMessage")
 const port = process.env.PORT || "3000"
 const app = express()
-const forceDatabaseReset = true; //Tell Seuqelize to drop all data and update table structure
+const forceDatabaseReset = false; //Tell Seuqelize to drop all data and update table structure
 
 
 // Setup express app
@@ -31,6 +31,13 @@ const eventRoutes = require("./routes/event.routes")
 // Unsecured Endpoints
 app.use("/api", authRoutes)
 
+//TODO move secured endpoints below endpoint security
+
+//Secured endpoints
+app.use("/api/users", userRoutes)
+app.use("/api/tickets", ticketRoutes)
+app.use("/api/events", eventRoutes)
+
 //Endpoint security middleware using jwt
 app.use("*", function(req, res, next) {  
   const token = req.headers["x-access-token"] //Fetch token from header
@@ -46,10 +53,7 @@ app.use("*", function(req, res, next) {
   } else next(new ApiMessage("No token provided. Access denied", 401))
 })
 
-//Secured endpoints
-app.use("/api/users", userRoutes)
-app.use("/api/tickets", ticketRoutes)
-app.use("/api/events", eventRoutes)
+
 
 
 //Catch all non existing endpoints
