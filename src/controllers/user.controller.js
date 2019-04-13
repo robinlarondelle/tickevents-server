@@ -8,6 +8,7 @@ module.exports = {
     })
   },
 
+  //TODO change response when nothing found
   getUserById(req, res, next) {
     User.findByPk(req.params.id).then(users => {
       res.status(200).json(users).end()
@@ -17,7 +18,7 @@ module.exports = {
   createUser(req, res, next) {
     const body = req.body
 
-    User.findOrCreate({
+    User.findOrCreate({ //Create a new User from the req body and check if the email already exists
       where: { Email: body.Email },
       defaults: {
         FirstName: body.Firstname,
@@ -40,12 +41,15 @@ module.exports = {
             user: user
           }, 201))
           .end()
+
       } else {
         res
           .status(200)
           .json(new ApiMessage(`User with email ${body.Email} already exists`, 200))
           .end()
       }
+    }).catch(err => {
+      console.log(`Error occured: \n\n ${err}`);
     })
   },
 

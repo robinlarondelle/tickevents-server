@@ -2,33 +2,33 @@ const Sequelize = require("sequelize")
 const db = require("../config/models-database")
 
 const event = db.define("events", {
-  EVENT_ID: {
+  EventID: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     primaryKey: true
   },
 
-  USER_ID: {
+  UserID: {
     type: Sequelize.INTEGER,
     references: {
       model: "Users",
-      key: 'USER_ID'
+      key: 'UserID'
     },
     comment: "Owner/Host of the Event"
   },
 
-  EVENT_NAME: {
+  EventName: {
     type: Sequelize.STRING,
     allowNull: false,
     unique: true
   },
 
-  EVENT_VENUE: {
+  EventVenue: {
     type: Sequelize.STRING,
     allowNull: false
   },
 
-  VENUE_ADDRESS: {
+  VenueAddress: {
     type: Sequelize.STRING,
     validate: { //Only dutch streetnames for now: [Streetname] + [HouseNR]
       is: /^([1-9][e][\s])*([a-zA-Z]+(([\.][\s])|([\s]))?)+[1-9][0-9]*(([-][1-9][0-9]*)|([\s]?[a-zA-Z]+))?$/i
@@ -36,7 +36,7 @@ const event = db.define("events", {
     allowNull: false
   },
 
-  VENUE_ZIPCODE: { //Only dutch zipcodes for now: [AAAA 11]
+  VenueZipcode: { //Only dutch zipcodes for now: [AAAA 11]
     type: Sequelize.STRING,
     validate: {
       is: /^[1-9][0-9]{3}[\s]?[A-Za-z]{2}$/i
@@ -44,22 +44,22 @@ const event = db.define("events", {
     allowNull: false
   },
 
-  VENUE_CITY: {
+  VenueCity: {
     type: Sequelize.STRING,
     allowNull: false
   },
 
-  VENUE_COUNTRY: {
+  VenueCountry: {
     type: Sequelize.STRING,
     allowNull: false
   },
 
-  EVENT_DATE: {
+  EventDate: {
     type: Sequelize.DATE,
     allowNull: false
   },
 
-  CAPACITY: {
+  Capacity: {
     type: Sequelize.STRING,
     allowNull: false,
     defaultValue: 0

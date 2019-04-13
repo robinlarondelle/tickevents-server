@@ -23,7 +23,7 @@ app.use(passport.initialize())
 
 // Routes
 const authRoutes = require("./routes/auth.routes")
-const userRoutes = require("./routes/user.routes")
+const userRoutes = require("./routes/user.routes")  
 const ticketRoutes = require("./routes/ticket.routes")
 const eventRoutes = require("./routes/event.routes")
 
