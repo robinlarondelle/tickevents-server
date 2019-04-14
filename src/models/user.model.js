@@ -33,7 +33,7 @@ const user = db.define("users", {
 
   Gender: {
     type: Sequelize.STRING,
-    allowNull: false,
+    allowNull: true,
     validate: {
       isIn: [['Male', 'Female', 'Other']]
     }
@@ -45,7 +45,7 @@ const user = db.define("users", {
     validate: { //Only dutch streetnames for now: [Streetname] + [HouseNR]
       is: /^([1-9][e][\s])*([a-zA-Z]+(([\.][\s])|([\s]))?)+[1-9][0-9]*(([-][1-9][0-9]*)|([\s]?[a-zA-Z]+))?$/i
     },
-    allowNull: false
+    allowNull: true
   },
 
   Zipcode: { //Only dutch zipcodes for now: [AAAA 11]
@@ -53,17 +53,17 @@ const user = db.define("users", {
     validate: {
       is: /^[1-9][0-9]{3}[\s]?[A-Za-z]{2}$/i
     },
-    allowNull: false
+    allowNull: true
   },
 
   City: {
     type: Sequelize.STRING,
-    allowNull: false
+    allowNull: true
   },
 
   Country: {
     type: Sequelize.STRING,
-    allowNull: false
+    allowNull: true
   },
 
   PhoneNumber: {
@@ -71,7 +71,7 @@ const user = db.define("users", {
     validate: { //Only Dutch 06 phone numbers work for now
       is: /^(((\\+31|0|0031)6){1}[1-9]{1}[0-9]{7})$/i
     },
-    allowNull: false
+    allowNull: true
   },
 
   IBAN: {
@@ -79,7 +79,7 @@ const user = db.define("users", {
     validate: { //Only dutch banks for now
       is: /^[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}$/
     },
-    allowNull: false
+    allowNull: true
   },
 })
 

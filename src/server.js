@@ -1,5 +1,5 @@
 require("dotenv").config({ path: "./environment/environment.env" }) //Get the environment file
-console.log("\nAPI running in " + process.env.NODE_ENV + " mode \n" )
+console.log("\nAPI running in " + process.env.NODE_ENV + " mode \n")
 
 const express = require('express') //HTTP request framework
 const morgan = require("morgan")
@@ -12,9 +12,9 @@ const identityDb = require("./config/identity-database")
 const ApiMessage = require("./util/ApiMessage")
 const port = process.env.PORT || "3000"
 const app = express()
-const forceDatabaseReset = true; //Tell Seuqelize to drop all data and update table structure
+const forceDatabaseReset = false; //Tell Seuqelize to drop all data and update table structure    
 
-
+  
 // Setup express app
 app.use(bodyParser.json()) //Parse request body to JSON
 if (process.env.NODE_ENV === "development") app.use(morgan("dev")) //Log requests to console if in development
@@ -23,9 +23,9 @@ app.use(passport.initialize())
 
 // Routes
 const authRoutes = require("./routes/auth.routes")
-const userRoutes = require("./routes/user.routes")  
+const userRoutes = require("./routes/user.routes")
 const ticketRoutes = require("./routes/ticket.routes")
-const eventRoutes = require("./routes/event.routes")  
+const eventRoutes = require("./routes/event.routes")
 
 
 // Unsecured Endpoints
@@ -39,7 +39,7 @@ app.use("/api/tickets", ticketRoutes)
 app.use("/api/events", eventRoutes)
 
 //Endpoint security middleware using jwt
-app.use("*", function(req, res, next) {  
+app.use("*", function (req, res, next) {
   const token = req.headers["x-access-token"] //Fetch token from header
   if (token) {
 

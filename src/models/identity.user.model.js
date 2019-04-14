@@ -21,6 +21,11 @@ const IdentityUser = db.define("identity-users", {
     allowNull: false
   },
 
+  MiddleName: {
+    type: Sequelize.STRING,
+    allowNull: true
+  },
+
   LastName: {
     type: Sequelize.STRING,
     allowNull: false
