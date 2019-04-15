@@ -10,7 +10,7 @@ const Mailer = require("../util/mailer")
 const ApiMessage = require("../util/apimessage")
 
 module.exports = {
-  
+
   loginUser(req, res, next) {
     passport.authenticate("local", (err, user, info) => { //Use passport to check if the credentials are correct
       if (!err) {
@@ -26,24 +26,23 @@ module.exports = {
 
 
   registerUser(req, res, next) {
-    const body = req.body
+    const { firstName, middleName, lastName, email, password, passwordConf } = req.body
 
-    if (body.Password === body.Passwordconf) {
+    if (password === passwordConf) {
       const passwordSalt = crypto.randomBytes(16).toString("hex")
-      const passwordHash = crypto.pbkdf2Sync(body.Password, passwordSalt, 1000, 64, "sha256").toString("hex")
+      const passwordHash = crypto.pbkdf2Sync(password, passwordSalt, 1000, 64, "sha256").toString("hex")
 
       //Create a new user if the email doesnt exists in the database
       IdentityUser.findOrCreate({
-        where: { Email: body.Email },
+        where: { Email: email },
         defaults: {
-          FirstName: body.Firstname,
-          MiddleName: body.Middlename,
-          LastName: body.Lastname,
+          FirstName: firstName,
+          MiddleName: middleName,
+          LastName: lastName,
           PasswordSalt: passwordSalt,
           PasswordHash: passwordHash,
         }
       }).then(([iduser, created]) => {
-
         if (created) {
           const jwtToken = generateJWTToken(iduser)
           const payload = { token: jwtToken }
@@ -58,61 +57,65 @@ module.exports = {
             res.status(201).json(payload).end() //Return token so the user is logged in when registered  
 
           }).catch(err => next(new ApiMessage(`Error occured1: ${err}`, 401)))
-        } else next(new ApiMessage(`User with email ${Email} already exists`, 200))
+        } else  next(new ApiMessage(`User with email ${email} already exists`, 400))
       }).catch(err => next(new ApiMessage(`Error occured2: ${err}`, 401)))
-    } else next(new ApiMessage("Passwords don't match", 401))
+    } else next(new ApiMessage(`Passwords don't match`, 400))
   },
 
 
   verifyEmail(req, res, next) {
-    const { IdentityUserID, Token } = req.body   
+    const { IdentityUserID, Token } = req.body
 
-    VerificationToken.findOne({ where: { IDentityUserID: IdentityUserID } }).then(token => {
-      if (token) { //Check if there was a token found with given UserID
-        if (token.Token == Token) { //Check if the given token matches the registered token
+      VerificationToken.findOne({ where: { IDentityUserID: IdentityUserID } }).then(token => {
+        if (token) { //Check if there was a token found with given UserID
+          if (token.Token == Token) { //Check if the given token matches the registered token
 
-          //Get current date and date of token creation to calculate difference
-          creationDate = moment(token.createdAt)
-          today = moment()
+            //Get current date and date of token creation to calculate difference
+            creationDate = moment(token.createdAt)
+            today = moment()
 
-          //Calculate difference between token generation and moment of request
-          const differenceInHours = moment.duration(today.diff(creationDate)).asHours()
-          if (differenceInHours <= 24) {
+            //Calculate difference between token generation and moment of request
+            const differenceInHours = moment.duration(today.diff(creationDate)).asHours()
+            if (differenceInHours <= 24) {
 
-            IdentityUser.update({ // Set Email Confirmed Property to true
-              EmailConfirmedYN: true
-            }, {
-                where: { IdentityUserID: IdentityUserID }
-              }).then(updated => {
+              IdentityUser.update({ // Set Email Confirmed Property to true
+                EmailConfirmedYN: true
+              }, {
+                  where: { IdentityUserID: IdentityUserID }
+                }).then(updated => {
 
-                //Remove used token from database
-                VerificationToken.destroy({ where: { VerificationTokenID: token.VerificationTokenID } }).then(destroyed => {
-                  IdentityUser.findOne({ where: { IdentityUserID: IdentityUserID } }).then(iduser => {
-                    ModelUser.findOrCreate({ //Create a new user with known details in the Model Database
-                      where: { Email: iduser.Email }, defaults: {
-                        FirstName: iduser.FirstName,
-                        MiddleName: iduser.MiddleName,
-                        LastName: iduser.LastName
-                      }
-                    }).then(([user, created]) => {
-                      if (created) {
-
-                        const payload = {
-                          "user-created": "success",
-                          "email-verified": "success",
-                          user: user,
-                          "token": jwt
+                  //Remove used token from database
+                  VerificationToken.destroy({ where: { VerificationTokenID: token.VerificationTokenID } }).then(destroyed => {
+                    IdentityUser.findOne({ where: { IdentityUserID: IdentityUserID } }).then(iduser => {
+                      ModelUser.findOrCreate({ //Create a new user with known details in the Model Database
+                        where: { Email: iduser.Email }, defaults: {
+                          FirstName: iduser.FirstName,
+                          MiddleName: iduser.MiddleName,
+                          LastName: iduser.LastName
                         }
-                        res.status(201).json(payload).end()
-                      } else next(new ApiMessage(`There already exists an Account with email ${iduser.Email}`, 200))
+                      }).then(([user, created]) => {
+                        if (created) {
+
+                          const payload = {
+                            "user-created": "success",
+                            "email-verified": "success",
+                            user: user,
+                            "token": jwt
+                          }
+                          res.status(201).json(payload).end()
+                        } else next(new ApiMessage(`There already exists an Account with email ${iduser.Email}`, 200))
+                      }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
                     }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
                   }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
                 }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
-              }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
-          } else next(new ApiMessage(`Token has expired. Please request a new token for IdentityUserID ${IdentityUserID}`, 200))
-        } else next(new ApiMessage(`Token ${Token} did not match registered token for IdentityUserID ${IdentityUserID}`))
-      } else next(new ApiMessage(`No token with IdentityUserID ${IdentityUserID} found`, 200))
-    }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
+            } else next(new ApiMessage(`Token has expired. Please request a new token for IdentityUserID ${IdentityUserID}`, 200))
+          } else next(new ApiMessage(`Token ${Token} did not match registered token for IdentityUserID ${IdentityUserID}`))
+        } else next(new ApiMessage(`No token with IdentityUserID ${IdentityUserID} found`, 200))
+      }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
+  },
+
+  resendVerificationEmail(req, res, next) {
+
   }
 }
 
