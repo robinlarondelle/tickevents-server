@@ -65,13 +65,7 @@ module.exports = {
 
 
   verifyEmail(req, res, next) {
-    const { identityid: IdentityUserID, verificationtoken: Token, jwt } = req.query
-    // const { IdentityUserID, Token } = req.body
-
-    console.log(IdentityUserID);
-    console.log(Token);
-    console.log(jwt);
-    
+    const { IdentityUserID, Token } = req.body   
 
     VerificationToken.findOne({ where: { IDentityUserID: IdentityUserID } }).then(token => {
       if (token) { //Check if there was a token found with given UserID

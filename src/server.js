@@ -6,6 +6,7 @@ const morgan = require("morgan")
 const bodyParser = require('body-parser') //Pase request body to JSON
 const passport = require("./config/passport/passport") // Passport.js to secure the API
 const jwt = require("jsonwebtoken")
+const cors = require("cors")
 
 const modelDb = require("./config/models-database")
 const identityDb = require("./config/identity-database")
@@ -19,6 +20,10 @@ const forceDatabaseReset = false; //Tell Seuqelize to drop all data and update t
 app.use(bodyParser.json()) //Parse request body to JSON
 if (process.env.NODE_ENV === "development") app.use(morgan("dev")) //Log requests to console if in development
 app.use(passport.initialize())
+
+
+//CORS Setup
+app.use(cors('*'))
 
 
 // Routes
