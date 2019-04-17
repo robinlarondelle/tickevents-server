@@ -54,12 +54,12 @@ module.exports = {
           }).then(token => {
 
             Mailer.sendVerificationEmail(iduser.Email, token.Token, jwtToken, iduser.IdentityUserID) //Send verifictation email to newly registered user
-            res.status(201).json(payload).end() //Return token so the user is logged in when registered  
+            res.status(201).json({"message": "success", payload }).end() //Return token so the user is logged in when registered  
 
-          }).catch(err => next(new ApiMessage(`Error occured1: ${err}`, 401)))
-        } else  next(new ApiMessage(`User with email ${email} already exists`, 400))
-      }).catch(err => next(new ApiMessage(`Error occured2: ${err}`, 401)))
-    } else next(new ApiMessage(`Passwords don't match`, 400))
+          }).catch(err => next(new ApiMessage(`Error occured: ${err}`, 200)))
+        } else  next(new ApiMessage(`DuplicateEmailError: User with email ${email} already exists`, 200))
+      }).catch(err => next(new ApiMessage(`Error occured: ${err}`, 200)))
+    } else next(new ApiMessage(`PasswordDontMatchError: Passwords don't match`, 200))
   },
 
 
