@@ -103,14 +103,14 @@ module.exports = {
                             "token": jwt
                           }
                           res.status(201).json(payload).end()
-                        } else next(new ApiMessage(`There already exists an Account with email ${iduser.Email}`, 200))
+                        } else next(new ApiMessage(`AlreadyVerifiedEmailError: There already exists an Account with email ${iduser.Email}`, 200))
                       }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
                     }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
                   }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
                 }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
-            } else next(new ApiMessage(`Token has expired. Please request a new token for IdentityUserID ${IdentityUserID}`, 200))
-          } else next(new ApiMessage(`Token ${Token} did not match registered token for IdentityUserID ${IdentityUserID}`))
-        } else next(new ApiMessage(`No token with IdentityUserID ${IdentityUserID} found`, 200))
+            } else next(new ApiMessage(`ExpiredTokenError: Token has expired. Please request a new token for IdentityUserID ${IdentityUserID}`, 200))
+          } else next(new ApiMessage(`TokenMismatchError: Token ${Token} did not match registered token for IdentityUserID ${IdentityUserID}`))
+        } else next(new ApiMessage(`TokenMissingError: No token with IdentityUserID ${IdentityUserID} found`, 200))
       }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
   },
 
