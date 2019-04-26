@@ -1,7 +1,7 @@
 const Sequelize = require("sequelize")
 const db = require("../config/models-database")
 
-const event = db.define("events", {
+const event = db.define("Events", {
   EventID: {
     type: Sequelize.INTEGER,
     autoIncrement: true,

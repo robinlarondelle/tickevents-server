@@ -26,6 +26,12 @@ app.use(passport.initialize())
 app.use(cors('*'))
 
 
+//make sure the development tables have seeddata in it
+if (process.env.NODE_ENV === "development") {
+  require("./util/seed-database").seeddatabase()
+}
+
+
 // Routes
 const authRoutes = require("./routes/auth.routes")
 const userRoutes = require("./routes/user.routes")

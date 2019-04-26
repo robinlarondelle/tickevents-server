@@ -1,7 +1,7 @@
 const Sequelize = require("sequelize")
 const db = require("../config/identity-database")
 
-const verificationToken = db.define('verification-tokens', {
+const verificationToken = db.define('VerificationTokens', {
 
   VerificationTokenID: {
     type: Sequelize.INTEGER,
@@ -13,7 +13,7 @@ const verificationToken = db.define('verification-tokens', {
   IdentityUserID: {
     type: Sequelize.INTEGER,
     references: {
-      model: "identity-users",
+      model: "IdentityUsers",
       key: 'IdentityUserID'
     }
   },
@@ -21,6 +21,8 @@ const verificationToken = db.define('verification-tokens', {
   Token: {
     type: Sequelize.STRING
   }
+}, {
+  freezeTableName: true
 })
 
 module.exports = verificationToken
