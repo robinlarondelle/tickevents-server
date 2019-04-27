@@ -11,7 +11,7 @@ const event = db.define("Events", {
   UserID: {
     type: Sequelize.INTEGER,
     references: {
-      model: "users",
+      model: "Users",
       key: 'UserID'
     },
     comment: "Owner/Host of the Event"

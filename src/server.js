@@ -4,18 +4,18 @@ console.log("\nAPI running in " + process.env.NODE_ENV + " mode \n")
 const express = require('express') //HTTP request framework
 const morgan = require("morgan")
 const bodyParser = require('body-parser') //Pase request body to JSON
-const passport = require("./config/passport/passport") // Passport.js to secure the API
 const jwt = require("jsonwebtoken")
 const cors = require("cors")
 
+const passport = require("./config/passport/passport") // Passport.js to secure the API
 const modelDb = require("./config/models-database")
 const identityDb = require("./config/identity-database")
 const ApiMessage = require("./util/ApiMessage")
 const port = process.env.PORT || "3000"
 const app = express()
-const forceDatabaseReset = false; //Tell Seuqelize to drop all data and update table structure    
+const forceDatabaseReset = true; //Tell Seuqelize to drop all data and update table structure    
 
-  
+
 // Setup express app
 app.use(bodyParser.json()) //Parse request body to JSON
 if (process.env.NODE_ENV === "development") app.use(morgan("dev")) //Log requests to console if in development
@@ -24,12 +24,6 @@ app.use(passport.initialize())
 
 //CORS Setup
 app.use(cors('*'))
-
-
-//make sure the development tables have seeddata in it
-if (process.env.NODE_ENV === "development") {
-  require("./util/seed-database").seeddatabase()
-}
 
 
 // Routes
@@ -49,6 +43,7 @@ app.use("/api/users", userRoutes)
 app.use("/api/tickets", ticketRoutes)
 app.use("/api/events", eventRoutes)
 
+
 //Endpoint security middleware using jwt
 app.use("*", function (req, res, next) {
   const token = req.headers["x-access-token"] //Fetch token from header
@@ -63,8 +58,6 @@ app.use("*", function (req, res, next) {
 
   } else next(new ApiMessage("No token provided. Access denied", 401))
 })
-
-
 
 
 //Catch all non existing endpoints
@@ -85,10 +78,14 @@ modelDb.sync({ force: forceDatabaseReset, logging: false }).then(() => {
   identityDb.sync({ force: forceDatabaseReset, logging: false }).then(() => {
     console.log(`Identity database Synced successfully. Reset Database: ${forceDatabaseReset}\n`)
 
+    //make sure the development tables have seeddata in it
+    if (process.env.NODE_ENV === "development") require("./util/database-seeder").seeddatabase()
+
     //Setup server on designated port
-    app.listen(port, () => console.log("Server is running on port: " + port))
+    app.listen(port, () => console.log("Server is running on port: " + port + "\n"))
 
   }).catch(err => console.log("\n\nAn error occured when syncing the identity database: \n\n" + err))
 }).catch(err => console.log("\n\nAn error occured when syncing the database: \n\n" + err))
+
 
 module.exports = app
