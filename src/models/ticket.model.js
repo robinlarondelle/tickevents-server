@@ -26,6 +26,10 @@ const ticket = db.define("Tickets", {
       key: "UserID"
     },
     allowNull: true
+  },
+  Price: {
+    type: Sequelize.STRING,
+    allowNull: false
   }
 })
 

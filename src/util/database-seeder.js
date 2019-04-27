@@ -14,7 +14,7 @@ const Tickets = require("../models/ticket.model")
 module.exports = {
   seeddatabase() {
 
-    const modelUser = ModelUser.findAll().then(data => {
+    ModelUser.findAll().then(data => {
       if (data.length === 0) {
         console.log(`No ModelUsers found in database, seeding new ModelUsers`);
 
@@ -27,7 +27,7 @@ module.exports = {
     })
 
 
-    const identityUser = IdentityUser.findAll().then(data => {
+    IdentityUser.findAll().then(data => {
       if (data.length === 0) {
         console.log(`No IdentityUsers found in database, seeding new IdentityUsers`);
 
@@ -40,7 +40,7 @@ module.exports = {
     })
 
 
-    const eventUser = Event.findAll().then(data => {
+    Event.findAll().then(data => {
       if (data.length === 0) {
         console.log(`No Events found in database, seeding new Events`);
 
@@ -48,27 +48,19 @@ module.exports = {
         const eventStream = readline.createInterface({ input: fs.createReadStream('./scripts/sd_events.sql') })
         eventStream.on('line', (line) => modelDatabase.query(`${line}`)).once("close", () => {
           console.log("Done seeding Events! \n");
-
-          Tickets.destroy({where: {}}).then(res => {
-            console.log(`Seeding new Tickets`);
-
-            const ticketStream = readline.createInterface({ input: fs.createReadStream('./scripts/sd_tickets.sql') })
-            ticketStream.on('line', (line) => modelDatabase.query(`${line}`)).once("close", () => {
-              console.log("Done seeding Tickets! \n");
-            })
-          })
         })
       }
     })
 
-    return new Promise((resolve, reject) => {
-      Promise.all([
-        modelUser,
-        identityUser,
-        eventUser
-      ]).then(() => {
-        resolve()
-      })
+    Tickets.findAll().then(data => {
+      if (data.length === 0) {
+        console.log(`No Tickets found in database, seeding new Tickets`);
+
+        const ticketStream = readline.createInterface({ input: fs.createReadStream('./scripts/sd_tickets.sql') })
+        ticketStream.on('line', (line) => modelDatabase.query(`${line}`)).once("close", () => {
+          console.log("Done seeding Tickets! \n");
+        })
+      }
     })
   }
 }
