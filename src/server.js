@@ -13,7 +13,7 @@ const identityDb = require("./config/identity-database")
 const ApiMessage = require("./util/ApiMessage")
 const port = process.env.PORT || "3000"
 const app = express()
-const forceDatabaseReset = true; //Tell Seuqelize to drop all data and update table structure    
+const forceDatabaseReset = false; //Tell Seuqelize to drop all data and update table structure    
 
 
 // Setup express app
@@ -79,10 +79,17 @@ modelDb.sync({ force: forceDatabaseReset, logging: false }).then(() => {
     console.log(`Identity database Synced successfully. Reset Database: ${forceDatabaseReset}\n`)
 
     //make sure the development tables have seeddata in it
-    if (process.env.NODE_ENV === "development") require("./util/database-seeder").seeddatabase()
+    if (process.env.NODE_ENV === "development") {
+      require("./util/database-seeder").seeddatabase().then(() => {
+        app.listen(port, () => console.log("Server is running on port: " + port + "\n"))
 
-    //Setup server on designated port
-    app.listen(port, () => console.log("Server is running on port: " + port + "\n"))
+      })
+    } else {
+
+      //Setup server on designated port
+      app.listen(port, () => console.log("Server is running on port: " + port + "\n"))
+    }
+
 
   }).catch(err => console.log("\n\nAn error occured when syncing the identity database: \n\n" + err))
 }).catch(err => console.log("\n\nAn error occured when syncing the database: \n\n" + err))
