@@ -52,6 +52,7 @@ module.exports = {
       }
     })
 
+    
     Tickets.findAll().then(data => {
       if (data.length === 0) {
         console.log(`No Tickets found in database, seeding new Tickets`);
