@@ -1,3 +1,5 @@
+const moment = require("moment")
+
 const ApiMessage = require("../util/ApiMessage")
 const Event = require("../models/event.model")
 const User = require("../models/user.model")
@@ -14,7 +16,7 @@ module.exports = {
   getEventById(req, res, next) {
     Event.findByPk(req.params.id).then(event => {
       if (event) res.status(200).json(event).end()
-      else res.status(200).json(new ApiMessage(`NoEventFoundError: No Events with ID ${req.params.id} found!`, 200)).end()      
+      else next(new ApiMessage(`NoEventFoundError: No Events with ID ${req.params.id} found!`, 200))
     })
   },
 
@@ -64,16 +66,39 @@ module.exports = {
     } else next(new ApiMessage(`Request body not correct`, 200))
   },
 
-  //TBD
+
   editEventById(req, res, next) {
-    res.status(503).end()
+    const { eventName, eventVenue, venueAddress, venueZipcode, venueCity, venueCountry, eventDate } = req.body
+    const id = req.params.id
+    const newEventDate = moment(eventDate)    
+
+    if (eventName && eventVenue, venueAddress, venueZipcode, venueCity, venueCountry, eventDate) {      
+      if (newEventDate.diff(moment(), 'days') > 0) {
+        Event.findByPk(req.params.id).then(event => {
+          if (event) {
+            event.update({
+              EventName: eventName,
+              EventVenue: eventVenue,
+              VenueAddress: venueAddress,
+              VenueZipcode: venueZipcode,
+              VenueCity: venueZipcode,
+              VenueCountry: venueCountry,
+              EventDate: eventDate
+            }).then(res1 => {
+              res.status(200).json(res1).end()
+            }).catch(err => next(new ApiMessage(`Error when updating event: ${err}`)))
+          } else next(new ApiMessage(`NoEventFoundError: No Events with ID ${id} found!`, 200))
+        }).catch(err => next(new ApiMessage(`Error when fetching event: ${err}`)))
+      } else next(new ApiMessage(`InvalidDateError: New EventDate cant be on this day`))
+    } else next(new ApiMessage(`Request body not correct`, 200))
   },
+
 
   updateCapacity(req, res, next) {
     res.status(503).end()
   },
 
-  //TBD
+
   deleteEventById(req, res, next) {
     res.status(503).end()
   }
