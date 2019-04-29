@@ -49,10 +49,5 @@ module.exports = {
   //TBD
   editUserById(req, res, next) {
     res.status(200).json({ message: "successfull response" }).end()
-  },
-
-  //TBD
-  deleteUserById(req, res, next) {
-    res.status(200).json({ message: "successfull response" }).end()
   }
 }
