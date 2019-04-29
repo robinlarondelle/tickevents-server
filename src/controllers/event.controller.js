@@ -13,7 +13,8 @@ module.exports = {
   //TODO change response when nothing found
   getEventById(req, res, next) {
     Event.findByPk(req.params.id).then(event => {
-      res.status(200).json(event).end()
+      if (event) res.status(200).json(event).end()
+      else res.status(200).json(new ApiMessage(`NoEventFoundError: No Events with ID ${req.params.id} found!`, 200)).end()      
     })
   },
 
@@ -65,6 +66,10 @@ module.exports = {
 
   //TBD
   editEventById(req, res, next) {
+    res.status(503).end()
+  },
+
+  updateCapacity(req, res, next) {
     res.status(503).end()
   },
 
