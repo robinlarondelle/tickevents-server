@@ -51,11 +51,6 @@ app.use("/api/tickets", ticketRoutes)
 app.use("/api/events", eventRoutes)
 
 
-//Catch all non existing endpoints
-app.use("*", function (req, res, next) {
-  next(new ApiMessage("Endpoint not found", 404, Date.now()))
-})
-
 
 //Endpoint security middleware using jwt
 app.use("*", function (req, res, next) {
@@ -73,8 +68,10 @@ app.use("*", function (req, res, next) {
 })
 
 
-
-
+//Catch all non existing endpoints
+app.use("*", function (req, res, next) {
+  next(new ApiMessage("Endpoint not found", 404, Date.now()))
+})
 
 //Error endpoint
 app.use((err, req, res, next) => {

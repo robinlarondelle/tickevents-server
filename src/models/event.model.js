@@ -63,6 +63,11 @@ const event = db.define("Events", {
     type: Sequelize.STRING,
     allowNull: false,
     defaultValue: 0
+  },
+
+  PricePerTicket: {
+    type: Sequelize.INTEGER,
+    allowNull: false
   }
 })
 
