@@ -29,7 +29,7 @@ const ticket = db.define("Tickets", {
     defaultValue: null
   },
   Price: {
-    type: Sequelize.STRING,
+    type: Sequelize.DOUBLE,
     allowNull: false
   }
 })

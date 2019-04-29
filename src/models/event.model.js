@@ -66,7 +66,7 @@ const event = db.define("Events", {
   },
 
   PricePerTicket: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.DOUBLE,
     allowNull: false
   }
 })

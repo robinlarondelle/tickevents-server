@@ -8,7 +8,7 @@ const modelDatabase = require(`../config/models-database`)
 const IdentityUser = require(`../models/identity.user.model`)
 const ModelUser = require('../models/user.model')
 const Event = require("../models/event.model")
-const Tickets = require("../models/ticket.model")
+const Ticket = require("../models/ticket.model")
 
 
 module.exports = {
@@ -40,26 +40,28 @@ module.exports = {
     })
 
 
-    Event.findAll().then(data => {
-      if (data.length === 0) {
+    Event.findAll().then(events => {
+      if (events.length === 0) {
         console.log(`No Events found in database, seeding new Events`);
 
         //Read every line from the SQL script and execute each command 
         const eventStream = readline.createInterface({ input: fs.createReadStream('./scripts/sd_events.sql') })
         eventStream.on('line', (line) => modelDatabase.query(`${line}`)).once("close", () => {
-          console.log("Done seeding Events! \n");
-        })
-      }
-    })
+          Ticket.destroy({ where: {} }).then(() => {
+            Event.findAll().then(data => {
 
-    
-    Tickets.findAll().then(data => {
-      if (data.length === 0) {
-        console.log(`No Tickets found in database, seeding new Tickets`);
+              for (var i = 0; i < data.length; i++) {                
+                for (var j = 0; j < data[i].Capacity; j++) {
+                  Ticket.create({
+                    EventID: data[i].EventID,
+                    Price: data[i].PricePerTicket
+                  })
+                }
+              }
 
-        const ticketStream = readline.createInterface({ input: fs.createReadStream('./scripts/sd_tickets.sql') })
-        ticketStream.on('line', (line) => modelDatabase.query(`${line}`)).once("close", () => {
-          console.log("Done seeding Tickets! \n");
+              console.log(`Done seeding Events and Tickets`);
+            })
+          })
         })
       }
     })

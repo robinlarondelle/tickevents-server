@@ -19,8 +19,8 @@ const port = process.env.PORT || "3000"
 const app = express()
 
 //Parameters
-const forceDatabaseReset = false; //Tell Seuqelize to drop all data and update table structure    
-const seedDatabase = false; //Fill the database with fake data
+const forceDatabaseReset = true; //Tell Seuqelize to drop all data and update table structure    
+const seedDatabase = true; //Fill the database with fake data
 
 
 // Setup express app
