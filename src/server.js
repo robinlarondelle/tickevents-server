@@ -81,9 +81,9 @@ app.use((err, req, res, next) => {
 
 //Sync the database first, then run the server
 modelDb.sync({ force: forceDatabaseReset, logging: false }).then(() => {
-  console.log(`Models database Synced successfully. Reset Database: ${forceDatabaseReset}`)
+  console.log(`Models database Synced successfully.   || Reset Database: ${forceDatabaseReset}. Reseeded Database: ${seedDatabase}.`)
   identityDb.sync({ force: forceDatabaseReset, logging: false }).then(() => {
-    console.log(`Identity database Synced successfully. Reset Database: ${forceDatabaseReset}\n`)
+    console.log(`Identity database Synced successfully. || Reset Database: ${forceDatabaseReset}. Reseeded Database: ${seedDatabase}.\n`)
 
     //make sure the development tables have seeddata in it
     if (process.env.NODE_ENV === "development" && seedDatabase) require("./util/database-seeder").seeddatabase()
