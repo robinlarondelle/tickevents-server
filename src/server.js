@@ -19,8 +19,8 @@ const port = process.env.PORT || "3000"
 const app = express()
 
 //Parameters
-const forceDatabaseReset = true; //Tell Seuqelize to drop all data and update table structure    
-const seedDatabase = true; //Fill the database with fake data
+const forceDatabaseReset = false; //Tell Seuqelize to drop all data and update table structure    
+const seedDatabase = false; //Fill the database with fake data
 
 
 // Setup express app
@@ -35,6 +35,7 @@ app.use(cors('*'))
 
 // Routes
 const authRoutes = require("./routes/auth.routes")
+const tokenRoutes = require(`./routes/token.routes`)
 const userRoutes = require("./routes/user.routes")
 const ticketRoutes = require("./routes/ticket.routes")
 const eventRoutes = require("./routes/event.routes")
@@ -46,6 +47,7 @@ app.use("/api", authRoutes)
 
 //TODO move secured endpoints below endpoint security
 //Secured endpoints
+app.use(`/api/tokens`, tokenRoutes)
 app.use("/api/users", userRoutes)
 app.use("/api/tickets", ticketRoutes)
 app.use("/api/events", eventRoutes)
