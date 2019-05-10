@@ -11,7 +11,7 @@ const ApiMessage = require("../util/apimessage")
 
 module.exports = {
 
-  loginUser(req, res, next) {
+  loginUser(req, res, next) {    
     passport.authenticate("local", (err, user, info) => { //Use passport to check if the credentials are correct
       if (!err) {
         if (user) {

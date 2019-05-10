@@ -60,7 +60,7 @@ const event = db.define("Events", {
   },
 
   Capacity: {
-    type: Sequelize.STRING,
+    type: Sequelize.INTEGER,
     allowNull: false,
     defaultValue: 0
   },
