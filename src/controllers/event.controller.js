@@ -6,17 +6,29 @@ const User = require("../models/user.model")
 const Ticket = require("../models/ticket.model")
 
 module.exports = {
+
   getAllEvents(req, res, next) {
     Event.findAll().then(events => {
       res.status(200).json(events).end()
     })
   },
 
-  //TODO change response when nothing found
+
   getEventById(req, res, next) {
     Event.findByPk(req.params.id).then(event => {
       if (event) res.status(200).json(event).end()
       else next(new ApiMessage(`NoEventFoundError: No Events with ID ${req.params.id} found!`, 200))
+    })
+  },
+
+
+  getTicketsForEvent(req, res, next) {
+    Ticket.findAll({where: { EventID : req.params.EventID}}).then(tickets => {
+      if (tickets.length !== 0) {
+        res.status(200).json(tickets).end()
+      } else {
+        next(new ApiMessage(`NoTicketsFoundError: No Tickets found for EventID ${req.params.EventID}`, 200))
+      }
     })
   },
 
@@ -65,6 +77,12 @@ module.exports = {
       }).catch(err => next(new ApiMessage(`Error: ${err}`)))
     } else next(new ApiMessage(`Request body not correct`, 200))
   },
+
+
+  purchaseTicketforEvent(req, res, next) {
+    res.status(503).end()
+  },
+
 
 
   editEventById(req, res, next) {

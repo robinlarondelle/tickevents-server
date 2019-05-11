@@ -1,19 +1,22 @@
 const Ticket = require("../models/ticket.model")
+const ApiMessage = require("../util/ApiMessage")
 
 module.exports = {
+
   getTickets(req, res, next) {
-    res.status(503).json({message: "Not Implemented Yet"}).end()
+    Ticket.findAll().then(tickets => {
+      res.status(200).json(tickets).end()
+    })
   },
 
-  getTicketsFromEvent(req, res, next) {
-    res.status(503).json({message: "Not Implemented Yet"}).end()
-  },
 
   getTicketByID(req, res, next) {
-    res.status(503).json({message: "Not Implemented Yet"}).end()
-  },
-
-  purchaseTicket(req, res, next){
-  res.status(503).json({message: "Not Implemented Yet"}).end()
+    Ticket.findByPk({where: { TicketID : req.params.TicketID}}).then(ticket => {
+      if (ticket) {
+        res.status(200).json(ticket).end()
+      } else {
+        next(new ApiMessage(`NoTicketsFoundError: No Tickets found for EventID ${req.params.EventID}`, 200))
+      }
+    })
   }
 }
