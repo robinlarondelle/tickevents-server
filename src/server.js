@@ -51,6 +51,7 @@ app.use(`/api/tokens`, tokenRoutes)
 app.use("/api/users", userRoutes)
 app.use("/api/tickets", ticketRoutes)
 app.use("/api/events", eventRoutes)
+//TODO: Add Logging endpoint
 
 
 

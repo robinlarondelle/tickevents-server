@@ -32,6 +32,12 @@ module.exports = {
     })
   },
 
+  //TODO: Get all active Events
+
+  //TODO: Get all Events from one User
+
+  //TODO: Get all sold Tickets from Event
+
 
   createEvent(req, res, next) {
     const { email, eventName, eventVenue, venueAddress, venueZipcode, venueCity, venueCountry, eventDate, capacity, pricePerTicket } = req.body
@@ -78,10 +84,14 @@ module.exports = {
     } else next(new ApiMessage(`Request body not correct`, 200))
   },
 
-
+  //TODO: Create purchase Ticket endpoint
   purchaseTicketforEvent(req, res, next) {
+
+    //TODO: Send tickets to email when purchase was a success
     res.status(503).end()
   },
+
+  //TODO: Assign a Ticket from a Event to a User without any payment required
 
 
 
@@ -175,4 +185,6 @@ module.exports = {
   deleteEventById(req, res, next) {
     res.status(503).end()
   }
+
+  //TODO: Set Event non active when expired
 }

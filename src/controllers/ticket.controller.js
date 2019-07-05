@@ -19,4 +19,8 @@ module.exports = {
       }
     })
   }
+
+  //TODO: Get all Tickets from a User
+
+  //TODO: Create download Endpoint to download Tickets in PDF form
 }
