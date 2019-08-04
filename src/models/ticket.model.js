@@ -32,6 +32,9 @@ const ticket = db.define("Tickets", {
     type: Sequelize.DOUBLE,
     allowNull: false
   }
+
+  //TODO: Create boolean isReservated if a Ticket is reservated
+  //TODO: Create datetime reservatedTill, which is a expiry time, set to 15 minutes
 })
 
 module.exports = ticket;

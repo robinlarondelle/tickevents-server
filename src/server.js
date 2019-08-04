@@ -1,20 +1,27 @@
-require("dotenv").config({ path: "./environment/environment.env" }) //Get the environment file
-console.log("\nAPI running in " + process.env.NODE_ENV + " mode \n")
+//Decide what environment file to use
+if (process.env.NODE_ENV === "development") {
+  require("dotenv").config({ path: "./environment/dev.environment.env" })
+  console.log("\nAPI running in " + process.env.NODE_ENV + " mode \n")
+
+} else if (process.env.NODE_ENV === "production") {
+  require("dotenv").config({ path: "./environment/prod.environment.env" })
+  console.log("\nAPI running in " + process.env.NODE_ENV + " mode \n")
+}
 
 
 //Packages import
 const express = require('express') //HTTP request framework
-const morgan = require("morgan")
+const morgan = require("morgan") //HTTP request logger
 const bodyParser = require('body-parser') //Pase request body to JSON
-const jwt = require("jsonwebtoken")
-const cors = require("cors")
+const jwt = require("jsonwebtoken") //HTTP Token provider
+const cors = require("cors") // Access control
 
 
 //Local imports
 const passport = require("./config/passport/passport") // Passport.js to secure the API
 const modelDb = require("./config/models-database")
 const identityDb = require("./config/identity-database")
-const ApiMessage = require("./util/ApiMessage")
+const ErrorMessage = require("./util/error-message")
 const port = process.env.PORT || "3000"
 const app = express()
 
@@ -25,12 +32,9 @@ const seedDatabase = false; //Fill the database with fake data
 
 // Setup express app
 app.use(bodyParser.json()) //Parse request body to JSON
-if (process.env.NODE_ENV === "development") app.use(morgan("dev")) //Log requests to console if in development
+if (process.env.NODE_ENV === "development") app.use(morgan("dev")) //dont show all logs when in production mode
 app.use(passport.initialize())
-
-
-//CORS Setup
-app.use(cors('*'))
+app.use(cors('*')) //TODO: set access to only Angular and Flutter Applications
 
 
 // Routes
@@ -45,7 +49,7 @@ const eventRoutes = require("./routes/event.routes")
 app.use("/api", authRoutes)
 
 
-//TODO move secured endpoints below endpoint security
+//TODO: move secured endpoints below endpoint security
 //Secured endpoints
 app.use(`/api/tokens`, tokenRoutes)
 app.use("/api/users", userRoutes)
@@ -64,19 +68,25 @@ app.use("*", function (req, res, next) {
       if (!err) {
         req.payload = decoded //Set payload as a request property to use later
         next()
-      } else next(new ApiMessage("Error: " + err, 401))
+      } else next(new ErrorMessage("JWTError", err, 401))
     })
 
-  } else next(new ApiMessage("No token provided. Access denied", 401))
+  } else next(new ErrorMessage("MissingTokenError", "No token provided. Access denied", 401))
 })
+
+
+//
+// Place endpoints here
+//
 
 
 //Catch all non existing endpoints
 app.use("*", function (req, res, next) {
-  next(new ApiMessage("Endpoint not found", 404, Date.now()))
+  next(new ErrorMessage("EndpointNotFoundError", "Endpoint not found", 404))
 })
 
-//Error endpoint
+
+//Error middleware
 app.use((err, req, res, next) => {
   res.status(err.status || 404).json(err).send();
 })
@@ -91,10 +101,11 @@ modelDb.sync({ force: forceDatabaseReset, logging: false }).then(() => {
     //make sure the development tables have seeddata in it
     if (process.env.NODE_ENV === "development" && seedDatabase) require("./util/database-seeder").seeddatabase()
 
-      //Setup server on designated port
-      app.listen(port, () => console.log("Server is running on port: " + port + "\n"))
-
+    //Setup server on designated port
+    app.listen(port, () => console.log("Server is running on port: " + port + "\n"))
+    return null
   }).catch(err => console.log("\n\nAn error occured when syncing the identity database: \n\n" + err))
+  return null 
 }).catch(err => console.log("\n\nAn error occured when syncing the database: \n\n" + err))
 
 

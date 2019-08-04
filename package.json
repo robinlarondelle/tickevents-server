@@ -1,5 +1,5 @@
 {
-  "name": "ticketshop-server",
+  "name": "tickevents-server",
   "version": "1.0.0",
   "description": "The backend server to communicate to the Ticketstore database",
   "main": "./src/server.js",
@@ -8,11 +8,11 @@
   },
   "scripts": {
     "test": "SET NODE_ENV=test& nodemon -r dotenv/config --exec mocha --recursive -R spec",
-    "start": "nodemon ./src/server.js"
+    "start": "SET NODE_ENV=development& nodemon ./src/server.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://Ticketstore@dev.azure.com/Ticketstore/Ticketstore%20Server/_git/Ticketstore%20Server"
+    "url": "https://github.com/robinlarondelle/tickevents-server.git"
   },
   "author": "Robin La Rondelle",
   "license": "ISC",
@@ -30,6 +30,7 @@
     "nodemon": "^1.18.10",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
-    "sequelize": "^4.42.0"
+    "sequelize": "^4.42.0",
+    "stripe": "^7.4.0"
   }
 }

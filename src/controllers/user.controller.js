@@ -1,5 +1,5 @@
 const User = require("../models/user.model")
-const ApiMessage = require("../util/ApiMessage")
+const ErrorMessage = require("../util/error-message")
 
 module.exports = {
   getUsers(req, res, next) {
@@ -36,14 +36,16 @@ module.exports = {
       if (created) { // No email found, so creating a new user
         res
           .status(201)
-          .json(new ApiMessage({
+
+          .json({
             "user-created": "success",
             user: user
-          }, 201))
+          })
+
           .end()
 
-      } else next(new ApiMessage(`User with email ${body.Email} already exists`, 200))
-    }).catch(err => next(new ApiMessage(`Error occured: ${err}`, 501)))
+      } else next(new ErrorMessage("DuplicateEmailError", `User with email ${body.Email} already exists`, 200))
+    }).catch(err => next(new ErrorMessage("SearchUserError", `${err}`, 501)))
   },
 
   //TBD

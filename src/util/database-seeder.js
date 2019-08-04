@@ -19,7 +19,7 @@ module.exports = {
         console.log(`No ModelUsers found in database, seeding new ModelUsers`);
 
         //Read every line from the SQL script and execute each command 
-        const userStream = readline.createInterface({ input: fs.createReadStream('./scripts/sd_users.sql') })
+        const userStream = readline.createInterface({ input: fs.createReadStream("src\\scripts\\sd_users.sql") })
         userStream.on('line', (line) => modelDatabase.query(`${line}`)).once("close", () => {
           console.log("Done seeding ModelUsers! \n");
         })
@@ -32,7 +32,7 @@ module.exports = {
         console.log(`No IdentityUsers found in database, seeding new IdentityUsers`);
 
         //Read every line from the SQL script and execute each command 
-        const identityUserStream = readline.createInterface({ input: fs.createReadStream('./scripts/sd_identity_users.sql') })
+        const identityUserStream = readline.createInterface({ input: fs.createReadStream("src\\scripts\\sd_identity_users.sql") })
         identityUserStream.on('line', (line) => identityDatabase.query(`${line}`)).once("close", () => {
           console.log("Done seeding IdentityUsers! \n");
         })
@@ -45,7 +45,7 @@ module.exports = {
         console.log(`No Events found in database, seeding new Events`);
 
         //Read every line from the SQL script and execute each command 
-        const eventStream = readline.createInterface({ input: fs.createReadStream('./scripts/sd_events.sql') })
+        const eventStream = readline.createInterface({ input: fs.createReadStream("src\\scripts\\sd_events.sql") })
         eventStream.on('line', (line) => modelDatabase.query(`${line}`)).once("close", () => {
           Ticket.destroy({ where: {} }).then(() => {
             Event.findAll().then(data => {

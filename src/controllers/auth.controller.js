@@ -7,7 +7,8 @@ const IdentityUser = require("../models/identity.user.model")
 const ModelUser = require("../models/user.model")
 const VerificationToken = require("../models/verificationtoken.model")
 const Mailer = require("../util/mailer")
-const ApiMessage = require("../util/apimessage")
+const ErrorMessage = require("../util/error-message")
+const validator = require("../util/validator")
 
 module.exports = {
 
@@ -19,50 +20,56 @@ module.exports = {
           const payload = { token: generateJWTToken(user) }
           res.status(200).json(payload).end() //Send JWT token when valid credentials
 
-        } else next(new ApiMessage(info, 401))
-      } else next(new ApiMessage("Error: " + err, 404))
+        } else next(new ErrorMessage("LookupUserError", info, 401))
+      } else next(new ErrorMessage("JWTTokenAuthenticationError", err, 400))
     })(req, res)
   },
 
 
   registerUser(req, res, next) {
-    const { firstName, middleName, lastName, email, password, passwordConf } = req.body
+    validator.validateRegisterUserBody(req.body).then(() => {
+      const { firstname, middlename, lastname, email, password, passwordConf } = req.body
 
-    if (password === passwordConf) {
-      const passwordSalt = crypto.randomBytes(16).toString("hex")
-      const passwordHash = crypto.pbkdf2Sync(password, passwordSalt, 1000, 64, "sha256").toString("hex")
+      if (password === passwordConf) {    
 
-      //Create a new user if the email doesnt exists in the database
-      IdentityUser.findOrCreate({
-        where: { Email: email },
-        defaults: {
-          FirstName: firstName,
-          MiddleName: middleName,
-          LastName: lastName,
-          PasswordSalt: passwordSalt,
-          PasswordHash: passwordHash,
-        }
-      }).then(([iduser, created]) => {
-        if (created) {
-          const jwtToken = generateJWTToken(iduser)
-          const payload = { token: jwtToken }
-
-          //Create a new token to be send to the user to verify their email
-          VerificationToken.create({
-            IdentityUserID: iduser.IdentityUserID,
-            Token: crypto.randomBytes(16).toString('hex')
-          }).then(token => {
-
-            Mailer.sendVerificationEmail(iduser.Email, token.Token, jwtToken, iduser.IdentityUserID) //Send verifictation email to newly registered user
-            res.status(201).json({"message": "success", payload }).end() //Return token so the user is logged in when registered  
-
-          }).catch(err => next(new ApiMessage(`Error occured: ${err}`, 200)))
-        } else  next(new ApiMessage(`DuplicateEmailError: User with email ${email} already exists`, 200))
-      }).catch(err => next(new ApiMessage(`Error occured: ${err}`, 200)))
-    } else next(new ApiMessage(`PasswordDontMatchError: Passwords don't match`, 200))
+        const passwordSalt = crypto.randomBytes(16).toString("hex")        
+        var hash = crypto.createHmac('sha512', passwordSalt)        
+        hash.update(password)
+  
+        var passwordHash = hash.digest('hex')
+        
+        //Create a new user if the email doesnt exists in the database
+        IdentityUser.findOrCreate({
+          where: { Email: email },
+          defaults: {
+            FirstName: firstname,
+            MiddleName: middlename,
+            LastName: lastname,
+            PasswordSalt: passwordSalt,
+            PasswordHash: passwordHash,
+          }
+        }).then(([iduser, created]) => {
+          if (created) {
+            const jwtToken = generateJWTToken(iduser)
+            const payload = { token: jwtToken }
+  
+            //Create a new token to be send to the user to verify their email
+            VerificationToken.create({
+              IdentityUserID: iduser.IdentityUserID,
+              Token: crypto.randomBytes(16).toString('hex')
+            }).then(token => {
+  
+              Mailer.sendVerificationEmail(iduser.Email, token.Token, jwtToken, iduser.IdentityUserID) //Send verifictation email to newly registered user
+              res.status(201).json({"message": "success", payload }).end() //Return token so the user is logged in when registered  
+  
+            }).catch(err => next(new ErrorMessage("CreateVerificationTokenError", `${err}`, 400)))
+          } else  next(new ErrorMessage("DuplicateEmailError", `User with email ${email} already exists`, 400))
+        }).catch(err => next(new ErrorMessage("LookupIdentityUserError", `${err}`, 400)))
+      } else next(new ErrorMessage("PasswordMismatchError", `Passwords don't match`, 400))
+    }).catch(e => next(new ErrorMessage("RequestBodyError", e, 400)))
   },
 
-
+  //TODO: Add input validation
   verifyEmail(req, res, next) {
     const { IdentityUserID, Token } = req.body
 
@@ -103,15 +110,15 @@ module.exports = {
                             "token": jwt
                           }
                           res.status(201).json(payload).end()
-                        } else next(new ApiMessage(`AlreadyVerifiedEmailError: There already exists an Account with email ${iduser.Email}`, 200))
-                      }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
-                    }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
-                  }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
-                }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
-            } else next(new ApiMessage(`ExpiredTokenError: Token has expired. Please request a new token for IdentityUserID ${IdentityUserID}`, 200))
-          } else next(new ApiMessage(`TokenMismatchError: Token ${Token} did not match registered token for IdentityUserID ${IdentityUserID}`))
-        } else next(new ApiMessage(`TokenMissingError: No token with IdentityUserID ${IdentityUserID} found`, 200))
-      }).catch(err => next(new ApiMessage(`Error occured: ${err}`)))
+                        } else next(new ErrorMessage("AlreadyVerifiedEmailError", `There already exists an Account with email ${iduser.Email}`, 200))
+                      }).catch(err => next(new ErrorMessage("NoModelUserFound", `${err}`, 400)))
+                    }).catch(err => next(new ErrorMessage("NoIdentityUserFound", `${err}`, 400)))
+                  }).catch(err => next(new ErrorMessage("DestroyTokenError", `${err}`, 400)))
+                }).catch(err => next(new ErrorMessage("IdentityUserUpdateError", `${err}`, 400)))
+            } else next(new ErrorMessage("ExpiredTokenError", `Token has expired. Please request a new token for IdentityUserID ${IdentityUserID}`, 200))
+          } else next(new ErrorMessage("TokenMismatchError", `Token ${Token} did not match registered token for IdentityUserID ${IdentityUserID}`, 400))
+        } else next(new ErrorMessage("TokenMissingError", `No token with IdentityUserID ${IdentityUserID} found`, 200))
+      }).catch(err => next(new ErrorMessage("TokenVerificationError", `${err}`, 400)))
   },
 
   resendVerificationEmail(req, res, next) {

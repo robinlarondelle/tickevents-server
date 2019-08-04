@@ -1,5 +1,5 @@
 const Ticket = require("../models/ticket.model")
-const ApiMessage = require("../util/ApiMessage")
+const ErrorMessage = require("../util/error-message")
 
 module.exports = {
 
@@ -15,7 +15,7 @@ module.exports = {
       if (ticket) {
         res.status(200).json(ticket).end()
       } else {
-        next(new ApiMessage(`NoTicketsFoundError: No Tickets found for EventID ${req.params.EventID}`, 200))
+        next(new ErrorMessage("NoTicketsFoundError", `No Tickets found for EventID ${req.params.EventID}`, 400))
       }
     })
   }

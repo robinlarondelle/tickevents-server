@@ -17,13 +17,23 @@ const event = db.define("Events", {
     comment: "Owner/Host of the Event"
   },
 
-  EventName: {
+  Name: {
     type: Sequelize.STRING,
     allowNull: false,
     unique: true
   },
 
-  EventVenue: {
+  Description: {
+    type: Sequelize.TEXT,
+    allowNull: true,
+  },
+
+  Date: {
+    type: Sequelize.DATE,
+    allowNull: false
+  },
+
+  Venue: {
     type: Sequelize.STRING,
     allowNull: false
   },
@@ -51,11 +61,6 @@ const event = db.define("Events", {
 
   VenueCountry: {
     type: Sequelize.STRING,
-    allowNull: false
-  },
-
-  EventDate: {
-    type: Sequelize.DATE,
     allowNull: false
   },
 

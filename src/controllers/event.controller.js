@@ -1,9 +1,11 @@
 const moment = require("moment")
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-const ApiMessage = require("../util/ApiMessage")
+const ErrorMessage = require("../util/error-message")
 const Event = require("../models/event.model")
 const User = require("../models/user.model")
 const Ticket = require("../models/ticket.model")
+const validator = require("../util/validator")
 
 module.exports = {
 
@@ -17,7 +19,7 @@ module.exports = {
   getEventById(req, res, next) {
     Event.findByPk(req.params.id).then(event => {
       if (event) res.status(200).json(event).end()
-      else next(new ApiMessage(`NoEventFoundError: No Events with ID ${req.params.id} found!`, 200))
+      else next(new ErrorMessage("NoEventFoundError", `No Events with ID ${req.params.id} found!`, 200))
     })
   },
 
@@ -27,7 +29,7 @@ module.exports = {
       if (tickets.length !== 0) {
         res.status(200).json(tickets).end()
       } else {
-        next(new ApiMessage(`NoTicketsFoundError: No Tickets found for EventID ${req.params.EventID}`, 200))
+        next(new ErrorMessage("NoTicketsFoundError", `No Tickets found for EventID ${req.params.EventID}`, 200))
       }
     })
   },
@@ -43,6 +45,7 @@ module.exports = {
     const { email, eventName, eventVenue, venueAddress, venueZipcode, venueCity, venueCountry, eventDate, capacity, pricePerTicket } = req.body
 
     //Check request body
+    //TODO: Remove check to Validator Util
     if (email && eventName && eventVenue && venueAddress && venueZipcode && venueCity && venueCountry && eventDate && capacity && pricePerTicket) {
       Event.findOne({ where: { EventName: eventName } }).then(dbEvent => {
         if (!dbEvent) {
@@ -76,22 +79,82 @@ module.exports = {
                 }
 
                 res.status(201).json(createResponse).end()
-              }).catch(err => next(new ApiMessage(`Error: ${err}`)))
-            } else next(new ApiMessage(`No user with email ${email} found in database. Please register first`, 200))
-          }).catch(err => next(new ApiMessage(`Error: ${err}`, 200)))
-        } else next(new ApiMessage(`Event with name ${eventName} already exists. Please create a new name`, 200))
-      }).catch(err => next(new ApiMessage(`Error: ${err}`)))
-    } else next(new ApiMessage(`Request body not correct`, 200))
+              }).catch(err => next(new ErrorMessage("CreateEventError", `${err}`, 400)))
+            } else next(new ErrorMessage("NoUserFoundError", `No user with email ${email} found in database. Please register first`, 200))
+          }).catch(err => next(new ErrorMessage("NoUserFoundError", `${err}`, 200)))
+        } else next(new ErrorMessage("DuplicateEventNameError", `Event with name ${eventName} already exists. Please create a new name`, 200))
+      }).catch(err => next(new ErrorMessage("FindEventError", `${err}`, 400)))
+
+      //TODO: Update Error message to something usefull like what needs to be placed in the request body
+    } else next(new ErrorMessage("FaultyRequestBodyError", `Request body not correct`, 400))
   },
 
   //TODO: Create purchase Ticket endpoint
   purchaseTicketforEvent(req, res, next) {
 
+    validator.validatePurchaseTicketBody(req.body).then(() => {
+      const {userID, eventID, amountOfTickets, purchaseMethod, productName} = req.body
+
+      User.findOne({where: {UserID: userID}}).then(user => {
+
+
+        
+        (async () => {
+          const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [{
+              name: productName,
+              description: 'Comfortable cotton t-shirt',
+              images: ['https://example.com/t-shirt.png'],
+              amount: 500,
+              currency: 'eur',
+              quantity: 1,
+            }],
+            success_url: 'https://example.com/success',
+            cancel_url: 'https://example.com/cancel',
+          });
+        })();
+
+        
+        
+
+        res.end()
+      }).catch(e => next(ErrorMessage("LookupModelUserError", e, 400)))
+
+    //Check if user exists in database, if not, request user to register
+
+    //Check if the Event hasn't expired, e.g. the Event hasn't started yet, if so, notify the user that he is too late
+
+    //Check if there are available tickets to purchase for this Event, if not, notify the user that the Event has sold out
+
+      //Reservate tickets
+
+      //Event available
+      //Tickets avaiable
+
+      //Create a request to Stripe implementation to handle the purchase
+
+      //TODO: Do research on Stripe and how their payment process works
+      
+        //Assign Tickets to user
+        //Return new Tickets
+
+
+
+
+
     //TODO: Send tickets to email when purchase was a success
-    res.status(503).end()
+
+  }).catch(e => next(new ErrorMessage(`${e}`, 400)))
+
   },
 
+
+
+
   //TODO: Assign a Ticket from a Event to a User without any payment required
+
+
 
 
 
@@ -114,11 +177,13 @@ module.exports = {
               EventDate: eventDate
             }).then(res1 => {
               res.status(200).json(res1).end()
-            }).catch(err => next(new ApiMessage(`Error when updating event: ${err}`)))
-          } else next(new ApiMessage(`NoEventFoundError: No Events with ID ${id} found!`, 200))
-        }).catch(err => next(new ApiMessage(`Error when fetching event: ${err}`)))
-      } else next(new ApiMessage(`InvalidDateError: New EventDate cant be on this day`))
-    } else next(new ApiMessage(`Request body not correct`, 200))
+            }).catch(err => next(new ErrorMessage("EventUpdateError", `${err}`, 400)))
+          } else next(new ErrorMessage("NoEventFoundError", `No Events with ID ${id} found!`, 200))
+        }).catch(err => next(new ErrorMessage("EventFetchingError", `${err}`, 400)))
+      } else next(new ErrorMessage("InvalidDateError", `New EventDate cant be on this day`, 400))
+
+      //TODO: Update Error message to something usefull like what needs to be placed in the request body
+    } else next(new ErrorMessage("FaultyRequestBodyError", `Request body not correct`, 400))
   },
 
 
@@ -147,7 +212,7 @@ module.exports = {
 
           event.update({ Capacity: capacity }).then(result => { //Set actual capacity to requested capacity
             res.status(200).json(result).end()
-          }).catch(err => next(new ApiMessage(`Error when updating event: ${err}`)))
+          }).catch(err => next(new ErrorMessage("UpdateEventError", `${err}`, 400)))
 
         } else if (ticketDifference < 0) { //Request to decrease capacity, so deleting unsold tickets to match capacity
           Ticket.findAll({ //Get all tickets that can potentially be deleted
@@ -170,15 +235,15 @@ module.exports = {
 
                 event.update({ Capacity: capacity }).then(result => { //Set actual capacity to requested capacity
                   res.status(200).json(result).end()
-                }).catch(err => next(new ApiMessage(`Error when updating event: ${err}`)))
-              }).catch(err => next(new ApiMessage(`Error when destroying tickets: ${err}`)))
+                }).catch(err => next(new ErrorMessage("UpdateEventError", `${err}`, 400)))
+              }).catch(err => next(new ErrorMessage("DestroyTicketsError", `${err}`, 400)))
 
               // The update cant go through because there are too many tickets sold
-            } else next(new ApiMessage(`TooManyTicketsSoldError: There are too many tickets sold to lower Capacity. Please increase capacity`))
-          }).catch(err => next(new ApiMessage(`Error when fetching tickets: ${err}`)))
+            } else next(new ErrorMessage("TooManyTicketsSoldError", `There are too many tickets sold to lower Capacity. Please increase capacity`, 400))
+          }).catch(err => next(new ErrorMessage("TicketFetchingError", `${err}`, 400)))
         }
-      }).catch(err => next(new ApiMessage(`Error when fetching event: ${err}`)))
-    } else next(new ApiMessage(`NoCapacityError: new capacity cant be 0`))
+      }).catch(err => next(new ErrorMessage("EventFetchingError", `${err}`, 400)))
+    } else next(new ErrorMessage("NoCapacityError", `new capacity cant be 0`, 400))
   },
 
 
