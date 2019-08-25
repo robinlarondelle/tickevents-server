@@ -21,7 +21,7 @@ module.exports = {
           res.status(200).json(payload).end() //Send JWT token when valid credentials
 
         } else next(new ErrorMessage("LookupUserError", info, 401))
-      } else next(new ErrorMessage("JWTTokenAuthenticationError", err, 400))
+      } else next(new ErrorMessage("JWTTokenAuthenticationError", err, 401))
     })(req, res)
   },
 

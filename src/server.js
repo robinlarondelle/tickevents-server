@@ -68,16 +68,18 @@ app.use("*", function (req, res, next) {
       if (!err) {
         req.payload = decoded //Set payload as a request property to use later
         next()
-      } else next(new ErrorMessage("JWTError", err, 401))
+      } else next(new ErrorMessage("JWT error", err, 401))
     })
 
   } else next(new ErrorMessage("MissingTokenError", "No token provided. Access denied", 401))
 })
 
-
 //
 // Place endpoints here
 //
+
+
+
 
 
 //Catch all non existing endpoints
