@@ -13,8 +13,10 @@ if (process.env.NODE_ENV === "development") {
 const express = require('express') //HTTP request framework
 const morgan = require("morgan") //HTTP request logger
 const bodyParser = require('body-parser') //Pase request body to JSON
-const jwt = require("jsonwebtoken") //HTTP Token provider
+const jwt = require('jsonwebtoken');
 const cors = require("cors") // Access control
+const fs = require('fs')
+
 
 
 //Local imports
@@ -24,6 +26,7 @@ const identityDb = require("./config/identity-database")
 const ErrorMessage = require("./util/error-message")
 const port = process.env.PORT || "3000"
 const app = express()
+
 
 //Parameters
 const forceDatabaseReset = false; //Tell Seuqelize to drop all data and update table structure    
@@ -49,36 +52,33 @@ const eventRoutes = require("./routes/event.routes")
 app.use("/api", authRoutes)
 
 
-//TODO: move secured endpoints below endpoint security
+// Endpoint authentication Middleware
+app.use( "*", (req, res, next) => {
+  const token = req.headers['x-access-token']
+
+  try {
+    fs.readFile('environment/keys/public_key.pem', (err, key) => {      
+      if (err) next(new ErrorMessage("PublicKeyFetchError", err, 400))
+      else {        
+        const payload = jwt.verify(token, Buffer.from(key).toString())
+        console.log(payload)
+        req.payload = payload
+        next()
+      }
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
+
+
 //Secured endpoints
 app.use(`/api/tokens`, tokenRoutes)
 app.use("/api/users", userRoutes)
 app.use("/api/tickets", ticketRoutes)
 app.use("/api/events", eventRoutes)
 //TODO: Add Logging endpoint
-
-
-
-//Endpoint security middleware using jwt
-app.use("*", function (req, res, next) {
-  const token = req.headers["x-access-token"] //Fetch token from header
-  if (token) {
-
-    jwt.verify(token, process.env.SECRET, (err, decoded) => {
-      if (!err) {
-        req.payload = decoded //Set payload as a request property to use later
-        next()
-      } else next(new ErrorMessage("JWT error", err, 401))
-    })
-
-  } else next(new ErrorMessage("MissingTokenError", "No token provided. Access denied", 401))
-})
-
-//
-// Place endpoints here
-//
-
-
 
 
 

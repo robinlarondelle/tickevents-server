@@ -31,6 +31,14 @@ const IdentityUser = db.define("IdentityUsers", {
     allowNull: false
   },
 
+  Role: {
+    type: Sequelize.ENUM([
+      'customer',
+      'admin',
+      'event-owner'
+    ])
+  },
+
   EmailConfirmedYN: {
     type: Sequelize.BOOLEAN,
     defaultValue: false
