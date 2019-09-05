@@ -53,8 +53,11 @@ app.use("/api", authRoutes)
 
 
 // Endpoint authentication Middleware
-app.use( "*", (req, res, next) => {
-  const token = req.headers['x-access-token']
+app.use( "*", (req, res, next) => {  
+  console.log(req.headers);
+  
+  let token = req.headers['authorization']
+  token = token.split(" ")[1] // remove Bearer from token and get token part from .split() array  
 
   try {
     fs.readFile('environment/keys/public_key.pem', (err, key) => {      
