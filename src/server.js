@@ -54,19 +54,20 @@ app.use("/api", authRoutes)
 
 // Endpoint authentication Middleware
 app.use( "*", (req, res, next) => {  
-  console.log(req.headers);
-  
   let token = req.headers['authorization']
   token = token.split(" ")[1] // remove Bearer from token and get token part from .split() array  
 
   try {
     fs.readFile('environment/keys/public_key.pem', (err, key) => {      
       if (err) next(new ErrorMessage("PublicKeyFetchError", err, 400))
-      else {        
-        const payload = jwt.verify(token, Buffer.from(key).toString())
-        console.log(payload)
-        req.payload = payload
-        next()
+      else {     
+        try {
+          const payload = jwt.verify(token, Buffer.from(key).toString())
+          req.payload = payload
+          next()
+        } catch (err) {
+          next(new ErrorMessage("JWTVerificationError", err, 401))
+        }
       }
     })
   } catch (err) {

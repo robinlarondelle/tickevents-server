@@ -23,6 +23,9 @@ module.exports = {
           try {
             var payload = {
               userID: idUser.IdentityUserID,
+              firstname: idUser.FirstName,
+              middlename: idUser.MiddleName,
+              lastname: idUser.LastName,
               email: idUser.Email,
               role: idUser.Role
             }
