@@ -50,6 +50,7 @@ const eventRoutes = require("./routes/event.routes")
 
 // Unsecured Endpoints
 app.use("/api", authRoutes)
+app.use("/api/events", eventRoutes)
 
 
 // Endpoint authentication Middleware
@@ -81,7 +82,6 @@ app.use( "*", (req, res, next) => {
 app.use(`/api/tokens`, tokenRoutes)
 app.use("/api/users", userRoutes)
 app.use("/api/tickets", ticketRoutes)
-app.use("/api/events", eventRoutes)
 //TODO: Add Logging endpoint
 
 

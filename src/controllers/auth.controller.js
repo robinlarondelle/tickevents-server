@@ -113,6 +113,7 @@ module.exports = {
     }).catch(e => next(new ErrorMessage("RequestBodyError", e, 400)))
   },
 
+
   //TODO: Add input validation
   verifyEmail(req, res, next) {
     const { IdentityUserID, Token } = req.body
@@ -169,7 +170,6 @@ module.exports = {
   resendVerificationEmail(req, res, next) {
 
   },
-
 
 
   getPublicKey(req, res, next) {

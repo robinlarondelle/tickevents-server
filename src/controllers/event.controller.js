@@ -5,6 +5,7 @@ const ErrorMessage = require("../models/error-message.model")
 const Event = require("../models/event.model")
 const User = require("../models/user.model")
 const Ticket = require("../models/ticket.model")
+const TicketType = require("../models/ticket-type.model")
 const validator = require("../util/validator")
 
 module.exports = {
@@ -19,13 +20,21 @@ module.exports = {
   getEventById(req, res, next) {
     Event.findByPk(req.params.id).then(event => {
       if (event) res.status(200).json(event).end()
-      else next(new ErrorMessage("NoEventFoundError", `No Events with ID ${req.params.id} found!`, 200))
+      else next(new ErrorMessage("NoEventFoundError", `No Events with ID ${req.params.id} found!`, 404))
     })
   },
 
   getEventTypesById(req, res, next) {
-    res.status(501).end()
+    const eventID = req.params.id
 
+    Event.findByPk(eventID).then(event => {
+      console.log(event);
+      
+      if (!!event) {
+
+
+      } else next(new ErrorMessage("NoEventFoundError", `No Events with ID ${eventID} found!`, 404))
+    }).catch(err => next( new ErrorMessage("EventLookupError", err, 404)))
   },
 
 
