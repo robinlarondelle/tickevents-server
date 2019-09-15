@@ -1,7 +1,7 @@
 const moment = require("moment")
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-const ErrorMessage = require("../util/error-message")
+const ErrorMessage = require("../models/error-message.model")
 const Event = require("../models/event.model")
 const User = require("../models/user.model")
 const Ticket = require("../models/ticket.model")
@@ -11,7 +11,7 @@ module.exports = {
 
   getAllEvents(req, res, next) {
     Event.findAll().then(events => {
-      res.status(200).json(events).end()
+      res.status(200).json({events}).end()
     })
   },
 
@@ -21,6 +21,11 @@ module.exports = {
       if (event) res.status(200).json(event).end()
       else next(new ErrorMessage("NoEventFoundError", `No Events with ID ${req.params.id} found!`, 200))
     })
+  },
+
+  getEventTypesById(req, res, next) {
+    res.status(501).end()
+
   },
 
 
@@ -93,7 +98,13 @@ module.exports = {
   purchaseTicketforEvent(req, res, next) {
 
     validator.validatePurchaseTicketBody(req.body).then(() => {
-      const {userID, eventID, amountOfTickets, purchaseMethod, productName} = req.body
+      const {
+        name,
+        email,
+        dateOfBirth,
+        purchase,
+        eventID,
+      } = body
 
       User.findOne({where: {UserID: userID}}).then(user => {
 

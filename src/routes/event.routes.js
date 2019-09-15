@@ -3,6 +3,7 @@ const eventController = require("../controllers/event.controller")
 
 routes.get("/", eventController.getAllEvents)
 routes.get("/:id", eventController.getEventById)
+routes.get("/:id/types", eventController.getEventTypesById)
 routes.get("/:EventID/tickets", eventController.getTicketsForEvent)
 routes.post("/", eventController.createEvent)
 routes.post("/:EventID/purchase", eventController.purchaseTicketforEvent)

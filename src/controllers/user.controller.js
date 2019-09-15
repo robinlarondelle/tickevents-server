@@ -1,5 +1,5 @@
 const User = require("../models/user.model")
-const ErrorMessage = require("../util/error-message")
+const ErrorMessage = require("../models/error-message.model")
 
 module.exports = {
   getUsers(req, res, next) {

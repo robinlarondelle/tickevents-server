@@ -8,7 +8,7 @@ const IdentityUser = require("../models/identity.user.model")
 const ModelUser = require("../models/user.model")
 const VerificationToken = require("../models/verificationtoken.model")
 const Mailer = require("../util/mailer")
-const ErrorMessage = require("../util/error-message")
+const ErrorMessage = require("../models/error-message.model")
 const validator = require("../util/validator")
 
 module.exports = {
@@ -72,19 +72,41 @@ module.exports = {
           }
         }).then(([iduser, created]) => {
           if (created) {
-            const jwtToken = generateJWTToken(iduser)
-            const payload = { token: jwtToken }
 
-            //Create a new token to be send to the user to verify their email
-            VerificationToken.create({
-              IdentityUserID: iduser.IdentityUserID,
-              Token: crypto.randomBytes(16).toString('hex')
-            }).then(token => {
+            try {
+              const privateKey = fs.readFileSync('environment/keys/private_key.pem')
+              
+              try {
+                var jwtPayload = {
+                  userID: iduser.IdentityUserID,
+                  firstname: iduser.FirstName,
+                  middlename: iduser.MiddleName,
+                  lastname: iduser.LastName,
+                  email: iduser.Email,
+                  role: iduser.Role
+                }                
 
-              Mailer.sendVerificationEmail(iduser.Email, token.Token, jwtToken, iduser.IdentityUserID) //Send verifictation email to newly registered user
-              res.status(201).json({ "message": "success", payload }).end() //Return token so the user is logged in when registered  
+                var jwtToken = jwt.sign(jwtPayload, privateKey, {
+                  expiresIn: '1h',
+                  algorithm: 'RS256'
+                })
+                
+                const payload = { token: jwtToken }
 
-            }).catch(err => next(new ErrorMessage("CreateVerificationTokenError", `${err}`, 400)))
+                //Create a new token to be send to the user to verify their email
+                VerificationToken.create({
+                  IdentityUserID: iduser.IdentityUserID,
+                  Token: crypto.randomBytes(16).toString('hex')
+                }).then(token => {               
+
+                  try {
+                    Mailer.sendVerificationEmail(iduser.Email, token.Token, jwtToken, iduser.IdentityUserID) //Send verifictation email to newly registered user
+                    res.status(201).json({ "message": "success", payload }).end() //Return token so the user is logged in when registered  
+                  } catch(err) { next(new ErrorMessage("SendEmailError", err, 400))}
+
+                }).catch(err => next(new ErrorMessage("CreateVerificationTokenError", `${err}`, 400)))
+              } catch (err) { next(new ErrorMessage("JWTCreationError", err, 401)) }
+            } catch (err) { next(new ErrorMessage("PrivateKeyReadError", err, 401)) }
           } else next(new ErrorMessage("DuplicateEmailError", `User with email ${email} already exists`, 400))
         }).catch(err => next(new ErrorMessage("LookupIdentityUserError", `${err}`, 400)))
       } else next(new ErrorMessage("PasswordMismatchError", `Passwords don't match`, 400))
@@ -110,33 +132,33 @@ module.exports = {
             IdentityUser.update({ // Set Email Confirmed Property to true
               EmailConfirmedYN: true
             }, {
-                where: { IdentityUserID: IdentityUserID }
-              }).then(updated => {
+              where: { IdentityUserID: IdentityUserID }
+            }).then(updated => {
 
-                //Remove used token from database
-                VerificationToken.destroy({ where: { VerificationTokenID: token.VerificationTokenID } }).then(destroyed => {
-                  IdentityUser.findOne({ where: { IdentityUserID: IdentityUserID } }).then(iduser => {
-                    ModelUser.findOrCreate({ //Create a new user with known details in the Model Database
-                      where: { Email: iduser.Email }, defaults: {
-                        FirstName: iduser.FirstName,
-                        MiddleName: iduser.MiddleName,
-                        LastName: iduser.LastName
+              //Remove used token from database
+              VerificationToken.destroy({ where: { VerificationTokenID: token.VerificationTokenID } }).then(destroyed => {
+                IdentityUser.findOne({ where: { IdentityUserID: IdentityUserID } }).then(iduser => {
+                  ModelUser.findOrCreate({ //Create a new user with known details in the Model Database
+                    where: { Email: iduser.Email }, defaults: {
+                      FirstName: iduser.FirstName,
+                      MiddleName: iduser.MiddleName,
+                      LastName: iduser.LastName
+                    }
+                  }).then(([user, created]) => {
+                    if (created) {
+
+                      const payload = {
+                        "user-created": "success",
+                        "email-verified": "success",
+                        user: user,
+                        "token": jwt
                       }
-                    }).then(([user, created]) => {
-                      if (created) {
-
-                        const payload = {
-                          "user-created": "success",
-                          "email-verified": "success",
-                          user: user,
-                          "token": jwt
-                        }
-                        res.status(201).json(payload).end()
-                      } else next(new ErrorMessage("AlreadyVerifiedEmailError", `There already exists an Account with email ${iduser.Email}`, 200))
-                    }).catch(err => next(new ErrorMessage("NoModelUserFound", `${err}`, 400)))
-                  }).catch(err => next(new ErrorMessage("NoIdentityUserFound", `${err}`, 400)))
-                }).catch(err => next(new ErrorMessage("DestroyTokenError", `${err}`, 400)))
-              }).catch(err => next(new ErrorMessage("IdentityUserUpdateError", `${err}`, 400)))
+                      res.status(201).json(payload).end()
+                    } else next(new ErrorMessage("AlreadyVerifiedEmailError", `There already exists an Account with email ${iduser.Email}`, 200))
+                  }).catch(err => next(new ErrorMessage("NoModelUserFound", `${err}`, 400)))
+                }).catch(err => next(new ErrorMessage("NoIdentityUserFound", `${err}`, 400)))
+              }).catch(err => next(new ErrorMessage("DestroyTokenError", `${err}`, 400)))
+            }).catch(err => next(new ErrorMessage("IdentityUserUpdateError", `${err}`, 400)))
           } else next(new ErrorMessage("ExpiredTokenError", `Token has expired. Please request a new token for IdentityUserID ${IdentityUserID}`, 200))
         } else next(new ErrorMessage("TokenMismatchError", `Token ${Token} did not match registered token for IdentityUserID ${IdentityUserID}`, 400))
       } else next(new ErrorMessage("TokenMissingError", `No token with IdentityUserID ${IdentityUserID} found`, 200))

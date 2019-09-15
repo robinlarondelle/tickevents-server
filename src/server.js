@@ -23,7 +23,7 @@ const fs = require('fs')
 const passport = require("./config/passport/passport") // Passport.js to secure the API
 const modelDb = require("./config/models-database")
 const identityDb = require("./config/identity-database")
-const ErrorMessage = require("./util/error-message")
+const ErrorMessage = require("./models/error-message.model")
 const port = process.env.PORT || "3000"
 const app = express()
 
@@ -66,7 +66,7 @@ app.use( "*", (req, res, next) => {
           req.payload = payload
           next()
         } catch (err) {
-          next(new ErrorMessage("JWTVerificationError", err, 401))
+          next(new ErrorMessage("JWTTokenExpired", err, 401))
         }
       }
     })

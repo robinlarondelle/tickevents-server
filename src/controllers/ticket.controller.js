@@ -1,5 +1,5 @@
 const Ticket = require("../models/ticket.model")
-const ErrorMessage = require("../util/error-message")
+const ErrorMessage = require("../models/error-message.model")
 
 module.exports = {
 

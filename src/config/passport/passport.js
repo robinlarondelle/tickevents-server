@@ -6,15 +6,15 @@ const IdentityUser = require("../../models/identity.user.model")
 
 // this is the function responsible for checking user credentials and validating passwords
 passport.use(new LocalStrategy({ usernameField: "email" }, (email, password, done) => { // Callback function
-
   IdentityUser.findOne({ where: { email } }).then(user => {
+    if (user) { //There exists a user with said password   
+      if (user.EmailConfirmedYN) {
+        if (validatePassword(user, password)) {
 
-    if (user) { //There exists a user with said password     
-      if (validatePassword(user, password)) {
+          return done(null, user) //The credentials are valid
 
-        return done(null, user) //The credentials are valid
-
-      } else done("Incorrect Password", false)
+        } else done("Incorrect Password", false)
+      } else done("Email not validated", false)
     } else return done("Incorrect email", false)
   }).catch(err => { return done("Error: " + err, false) })
 }))
