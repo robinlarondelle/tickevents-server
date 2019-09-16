@@ -13,12 +13,24 @@ const ticketTypes = db.define('TicketTypes', {
     references: {
       model: "Events",
       key: 'EventID'
-    }
+    },
+    allowNull: false
+  },
+
+  Name: {
+    type: Sequelize.STRING,
+    allowNull: false
   },
 
   Availability: {
     type: Sequelize.INTEGER,
     allowNull: false,  
+  },
+
+  PricePerTicket: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+    comment: 'Value of ticket in cents EUR'
   }
 })
 

@@ -24,17 +24,18 @@ module.exports = {
     })
   },
 
+
   getEventTypesById(req, res, next) {
     const eventID = req.params.id
 
-    Event.findByPk(eventID).then(event => {
-      console.log(event);
-      
-      if (!!event) {
-
-
-      } else next(new ErrorMessage("NoEventFoundError", `No Events with ID ${eventID} found!`, 404))
-    }).catch(err => next( new ErrorMessage("EventLookupError", err, 404)))
+    TicketType.findAll(
+      {where: {
+        EventID: eventID
+      }}).then(types => {
+        if (!!types || typeof types != undefined || types.length != 0) {
+          res.status(200).json(types).end()
+        } else next( new ErrorMessage("NoTicketTypesFoundError", 404))
+      }).catch(err => next (new ErrorMessage("TicketTypeFetchError", err, 400)))
   },
 
 
