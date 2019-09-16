@@ -9,6 +9,7 @@ const IdentityUser = require(`../models/identity.user.model`)
 const ModelUser = require('../models/user.model')
 const Event = require("../models/event.model")
 const Ticket = require("../models/ticket.model")
+const TicketTypes = require("../models/ticket-type.model")
 
 
 module.exports = {
@@ -47,19 +48,28 @@ module.exports = {
         //Read every line from the SQL script and execute each command 
         const eventStream = readline.createInterface({ input: fs.createReadStream("src\\scripts\\sd_events.sql") })
         eventStream.on('line', (line) => modelDatabase.query(`${line}`)).once("close", () => {
-          Ticket.destroy({ where: {} }).then(() => {
-            Event.findAll().then(data => {
 
-              for (var i = 0; i < data.length; i++) {                
-                for (var j = 0; j < data[i].Capacity; j++) {
-                  Ticket.create({
-                    EventID: data[i].EventID,
-                    Price: data[i].PricePerTicket
+          TicketTypes.destroy({ where: {} }).then(() => {
+            const tickettypesStream = readline.createInterface({ input: fs.createReadStream("src\\scripts\\sd_tickettypes.sql") })
+            tickettypesStream.on('line', line => modelDatabase.query(`${line}`)).once("close", () => {
+              console.log("Done seeding TicketTypes");
+
+              Ticket.destroy({ where: {} }).then(() => {
+                TicketTypes.findAll().then(types => {
+                  types.map(type => {
+
+                    for (var i = 0; i < type.Availability; i++) {
+                      Ticket.create({
+                        EventID: type.EventID,
+                        Price: type.PricePerTicket
+                      })
+                    }
+
+
                   })
-                }
-              }
-
-              console.log(`Done seeding Events and Tickets`);
+                  console.log("Done seeding Tickets");
+                })
+              })
             })
           })
         })
