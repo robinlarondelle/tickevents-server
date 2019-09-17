@@ -3,22 +3,28 @@ const db = require("../config/models-database")
 
 const ticket = db.define("Tickets", {
   TicketID: {
+    type: Sequelize.INTEGER,
     autoIncrement: true,
-    primaryKey: true,
-    type: Sequelize.INTEGER
+    primaryKey: true
   },
-  EventID: {
+
+  TicketTypeID: {
     type: Sequelize.INTEGER,
     references: {
-      model: "Events",
-      key: "EventID"
-    },
-    allowNull: false
+      model: "TicketTypes",
+      key: "TicketTypeID"
+    }
   },
-  PaymentReceived: {
-    type: Sequelize.BOOLEAN,
-    defaultValue: false
-  },
+
+  // Havent decided yet if i want to use this value
+  // EventID: {
+  //   type: Sequelize.INTEGER,
+  //   references: {
+  //     model: "Events",
+  //     key: "EventID"
+  //   }
+  // },
+
   BoughtBy: {
     type: Sequelize.INTEGER,
     references: {
@@ -26,15 +32,27 @@ const ticket = db.define("Tickets", {
       key: "UserID"
     },
     allowNull: true,
-    defaultValue: null
+    defaultValue: null,
+    comment: "Can be null when ticket hasn't been sold yet"
   },
-  Price: {
-    type: Sequelize.DOUBLE,
-    allowNull: false
-  }
 
-  //TODO: Create boolean isReservated if a Ticket is reservated
-  //TODO: Create datetime reservatedTill, which is a expiry time, set to 15 minutes
+  PaymentReceived: {
+    type: Sequelize.BOOLEAN,
+    defaultValue: false,
+    allowNull: false
+  },
+
+  Reservated: {
+    type: Sequelize.BOOLEAN,
+    defaultValue: false,
+    allowNull: false
+  },
+
+  ReservatedUntil: {
+    type: Sequelize.DATE,
+    allowNull: true,
+    defaultValue: null
+  }
 })
 
 module.exports = ticket;
