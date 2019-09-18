@@ -33,6 +33,12 @@ module.exports = {
         EventID: eventID
       }}).then(types => {
         if (!!types || typeof types != undefined || types.length != 0) {
+
+          types.map(type => {
+            
+          })
+
+
           res.status(200).json(types).end()
         } else next( new ErrorMessage("NoTicketTypesFoundError", 404))
       }).catch(err => next (new ErrorMessage("TicketTypeFetchError", err, 400)))

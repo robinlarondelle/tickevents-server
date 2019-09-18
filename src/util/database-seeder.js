@@ -22,7 +22,7 @@ module.exports = {
     ]).then(() => {
       seedTicketTypes().then(() => {
         seedTickets()
-        .catch(err => console.log(err))
+          .catch(err => console.log(err))
       }).catch(err => console.log(err))
     }).catch(err => console.log(err))
   }
@@ -31,7 +31,7 @@ module.exports = {
 
 function seedIdentityUsers() {
   return new Promise((resolve, reject) => {
-    
+
     IdentityUser.findAll().then(data => {
       if (data.length === 0) {
         console.log(`No IdentityUsers found in database, seeding new IdentityUsers`);
@@ -62,7 +62,7 @@ function seedModelUsers() {
         })
       }
     })
-    
+
   })
 }
 
@@ -104,6 +104,7 @@ function seedTickets() {
   return new Promise((resolve, reject) => {
     TicketTypes.findAll().then(types => {
       if (types !== 0) {
+        
         types.map(type => {
 
           Ticket.findAll({
@@ -113,17 +114,28 @@ function seedTickets() {
           }).then(tickets => {
             if (tickets.length === 0) {
               range(0, type.Availability).subscribe(x => {
-                Ticket.create({
-                  TicketTypeID: type.TicketTypeID
-                })
+                if (generateRandom(1, 10) === 1) { // 1 in 10 tickets will be sold
+                  Ticket.create({
+                    TicketTypeID: type.TicketTypeID,
+                    BoughtBy: generateRandom(1, 6),
+                    PaymentReceived: true
+                  })
+                } else {
+                  Ticket.create({
+                    TicketTypeID: type.TicketTypeID
+                  })
+                }
               })
             }
           })
-
         })
       } else (reject(console.log("No TicketTypes found to create Tickets for")))
-    }).then(() => {
-      resolve(console.log("Done seeding Tickets."))
     })
   })
+}
+
+function generateRandom(min, max) {
+  if (!!min && !!max) {
+    return Math.floor(Math.random() * (+max - +min)) + +min;
+  } else return Math.floor(Math.random() * 10)
 }
