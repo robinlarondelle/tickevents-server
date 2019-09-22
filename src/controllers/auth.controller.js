@@ -22,12 +22,12 @@ module.exports = {
 
           try {
             var payload = {
-              userID: idUser.IdentityUserID,
-              firstname: idUser.FirstName,
-              middlename: idUser.MiddleName,
-              lastname: idUser.LastName,
-              email: idUser.Email,
-              role: idUser.Role
+              userID: idUser.identityUserID,
+              firstname: idUser.firstName,
+              middlename: idUser.middleName,
+              lastname: idUser.lastName,
+              email: idUser.email,
+              role: idUser.role
             }
 
             var token = jwt.sign(payload, privateKey, {
@@ -62,13 +62,13 @@ module.exports = {
 
         //Create a new user if the email doesnt exists in the database
         IdentityUser.findOrCreate({
-          where: { Email: email },
+          where: { email: email },
           defaults: {
-            FirstName: firstname,
-            MiddleName: middlename,
-            LastName: lastname,
-            PasswordSalt: passwordSalt,
-            PasswordHash: passwordHash,
+            firstName: firstname,
+            middleName: middlename,
+            lastName: lastname,
+            passwordSalt: passwordSalt,
+            passwordHash: passwordHash,
           }
         }).then(([iduser, created]) => {
           if (created) {
@@ -78,12 +78,12 @@ module.exports = {
               
               try {
                 var jwtPayload = {
-                  userID: iduser.IdentityUserID,
-                  firstname: iduser.FirstName,
-                  middlename: iduser.MiddleName,
-                  lastname: iduser.LastName,
-                  email: iduser.Email,
-                  role: iduser.Role
+                  userID: iduser.identityUserID,
+                  firstname: iduser.firstName,
+                  middlename: iduser.middleName,
+                  lastname: iduser.lastName,
+                  email: iduser.email,
+                  role: iduser.role
                 }                
 
                 var jwtToken = jwt.sign(jwtPayload, privateKey, {
@@ -95,12 +95,12 @@ module.exports = {
 
                 //Create a new token to be send to the user to verify their email
                 VerificationToken.create({
-                  IdentityUserID: iduser.IdentityUserID,
-                  Token: crypto.randomBytes(16).toString('hex')
+                  identityUserID: iduser.identityUserID,
+                  token: crypto.randomBytes(16).toString('hex')
                 }).then(token => {               
 
                   try {
-                    Mailer.sendVerificationEmail(iduser.Email, token.Token, jwtToken, iduser.IdentityUserID) //Send verifictation email to newly registered user
+                    Mailer.sendVerificationEmail(iduser.email, token.token, jwtToken, iduser.identityUserID) //Send verifictation email to newly registered user
                     res.status(201).json({ "message": "success", payload }).end() //Return token so the user is logged in when registered  
                   } catch(err) { next(new ErrorMessage("SendEmailError", err, 400))}
 
@@ -116,11 +116,11 @@ module.exports = {
 
   //TODO: Add input validation
   verifyEmail(req, res, next) {
-    const { IdentityUserID, Token } = req.body
+    const { identityUserID, token: bodyToken } = req.body
 
-    VerificationToken.findOne({ where: { IDentityUserID: IdentityUserID } }).then(token => {
+    VerificationToken.findOne({ where: { identityUserID } }).then(token => {
       if (token) { //Check if there was a token found with given UserID
-        if (token.Token == Token) { //Check if the given token matches the registered token
+        if (token.token == bodyToken) { //Check if the given token matches the registered token
 
           //Get current date and date of token creation to calculate difference
           creationDate = moment(token.createdAt)
@@ -131,19 +131,19 @@ module.exports = {
           if (differenceInHours <= 24) {
 
             IdentityUser.update({ // Set Email Confirmed Property to true
-              EmailConfirmedYN: true
+              emailConfirmedYN: true
             }, {
-              where: { IdentityUserID: IdentityUserID }
+              where: { identityUserID }
             }).then(updated => {
 
               //Remove used token from database
-              VerificationToken.destroy({ where: { VerificationTokenID: token.VerificationTokenID } }).then(destroyed => {
-                IdentityUser.findOne({ where: { IdentityUserID: IdentityUserID } }).then(iduser => {
+              VerificationToken.destroy({ where: { verificationTokenID: token.verificationTokenID } }).then(destroyed => {
+                IdentityUser.findOne({ where: { identityUserID } }).then(iduser => {
                   ModelUser.findOrCreate({ //Create a new user with known details in the Model Database
-                    where: { Email: iduser.Email }, defaults: {
-                      FirstName: iduser.FirstName,
-                      MiddleName: iduser.MiddleName,
-                      LastName: iduser.LastName
+                    where: { email: iduser.email }, defaults: {
+                      firstName: iduser.firstName,
+                      middleName: iduser.middleName,
+                      lastName: iduser.lastName
                     }
                   }).then(([user, created]) => {
                     if (created) {
@@ -160,9 +160,9 @@ module.exports = {
                 }).catch(err => next(new ErrorMessage("NoIdentityUserFound", `${err}`, 400)))
               }).catch(err => next(new ErrorMessage("DestroyTokenError", `${err}`, 400)))
             }).catch(err => next(new ErrorMessage("IdentityUserUpdateError", `${err}`, 400)))
-          } else next(new ErrorMessage("ExpiredTokenError", `Token has expired. Please request a new token for IdentityUserID ${IdentityUserID}`, 200))
-        } else next(new ErrorMessage("TokenMismatchError", `Token ${Token} did not match registered token for IdentityUserID ${IdentityUserID}`, 400))
-      } else next(new ErrorMessage("TokenMissingError", `No token with IdentityUserID ${IdentityUserID} found`, 200))
+          } else next(new ErrorMessage("ExpiredTokenError", `Token has expired. Please request a new token for IdentityUserID ${identityUserID}`, 200))
+        } else next(new ErrorMessage("TokenMismatchError", `Token ${Token} did not match registered token for IdentityUserID ${identityUserID}`, 400))
+      } else next(new ErrorMessage("TokenMissingError", `No token with IdentityUserID ${identityUserID} found`, 200))
     }).catch(err => next(new ErrorMessage("TokenVerificationError", `${err}`, 400)))
   },
 

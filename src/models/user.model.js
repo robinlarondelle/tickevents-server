@@ -2,13 +2,13 @@ const Sequelize = require("sequelize")
 const db = require("../config/models-database")
 
 const user = db.define("Users", {
-  UserID: {
+  userID: {
     autoIncrement: true,
     primaryKey: true,
     type: Sequelize.INTEGER
   },
 
-  Email: {
+  email: {
     type: Sequelize.STRING,
     validate: {
       isEmail: true
@@ -16,22 +16,22 @@ const user = db.define("Users", {
     unique: true
   },
 
-  FirstName: {
+  firstName: {
     type: Sequelize.STRING,
     allowNull: false
   },
 
-  MiddleName: {
+  middleName: {
     type: Sequelize.STRING,
     allowNull: true
   },
 
-  LastName: {
+  lastName: {
     type: Sequelize.STRING,
     allowNull: false
   },
 
-  Gender: {
+  gender: {
     type: Sequelize.STRING,
     allowNull: true,
     validate: {
@@ -40,7 +40,7 @@ const user = db.define("Users", {
   },
 
   
-  Address: {
+  address: {
     type: Sequelize.STRING,
     validate: { //Only dutch streetnames for now: [Streetname] + [HouseNR]
       is: /^([1-9][e][\s])*([a-zA-Z]+(([\.][\s])|([\s]))?)+[1-9][0-9]*(([-][1-9][0-9]*)|([\s]?[a-zA-Z]+))?$/i
@@ -48,7 +48,7 @@ const user = db.define("Users", {
     allowNull: true
   },
 
-  Zipcode: { //Only dutch zipcodes for now: [AAAA 11]
+  zipcode: { //Only dutch zipcodes for now: [AAAA 11]
     type: Sequelize.STRING,
     validate: {
       is: /^[1-9][0-9]{3}[\s]?[A-Za-z]{2}$/i
@@ -56,17 +56,17 @@ const user = db.define("Users", {
     allowNull: true
   },
 
-  City: {
+  city: {
     type: Sequelize.STRING,
     allowNull: true
   },
 
-  Country: {
+  country: {
     type: Sequelize.STRING,
     allowNull: true
   },
 
-  PhoneNumber: {
+  phoneNumber: {
     type: Sequelize.STRING,
     validate: { //Only Dutch 06 phone numbers work for now
       is: /^(((\\+31|0|0031)6){1}[1-9]{1}[0-9]{7})$/i

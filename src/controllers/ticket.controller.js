@@ -11,7 +11,7 @@ module.exports = {
 
 
   getTicketByID(req, res, next) {
-    Ticket.findByPk({where: { TicketID : req.params.TicketID}}).then(ticket => {
+    Ticket.findByPk({where: { ticketID : req.params.ticketID}}).then(ticket => {
       if (ticket) {
         res.status(200).json(ticket).end()
       } else {

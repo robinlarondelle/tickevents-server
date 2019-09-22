@@ -14,18 +14,41 @@ const TicketTypes = require("../models/ticket-type.model")
 
 
 module.exports = {
+
   seeddatabase() {
-    Promise.all([
-      seedModelUsers(),
-      seedIdentityUsers(),
-      seedEvents()
-    ]).then(() => {
-      seedTicketTypes().then(() => {
-        seedTickets()
-          .catch(err => console.log(err))
-      }).catch(err => console.log(err))
-    }).catch(err => console.log(err))
+    clearDatabase().then(() => {
+      Promise.all([
+        seedModelUsers(),
+        seedIdentityUsers()
+      ]).then(() => {
+        seedEvents().then(() => {
+          seedTicketTypes().then(() => {
+            seedTickets().then(() => {
+              console.log("done")
+            })
+          })
+        })
+      })
+    })
   }
+}
+
+
+function clearDatabase() {
+  return new Promise((resolve, reject) => {
+    Promise.all([
+      ModelUser.destroy({where: {}}),
+      IdentityUser.destroy({where: {}})
+    ]).then(() => {
+      Ticket.destroy({where: {}}).then(() => {
+        TicketTypes.destroy({where: {}}).then(() => {
+          Event.destroy({where: {}}).then(() => {
+            resolve(console.log("Dumped entire database."))
+          })
+        })
+      })
+    })
+  })
 }
 
 
@@ -106,29 +129,33 @@ function seedTickets() {
       if (types !== 0) {
         
         types.map(type => {
-
           Ticket.findAll({
             where: {
-              TicketTypeID: type.TicketTypeID
+              ticketTypeID: type.ticketTypeID
             }
           }).then(tickets => {
             if (tickets.length === 0) {
-              range(0, type.Availability).subscribe(x => {
-                if (generateRandom(1, 10) === 1) { // 1 in 10 tickets will be sold
+              range(0, type.availability).subscribe(x => {
+                if (generateRandom(1, 11) === 1) { // 1 in 10 tickets will be sold
                   Ticket.create({
-                    TicketTypeID: type.TicketTypeID,
-                    BoughtBy: generateRandom(1, 6),
-                    PaymentReceived: true
+                    ticketTypeID: type.ticketTypeID,
+                    eventID: generateRandom(1, 11),
+                    boughtBy: generateRandom(1, 11),
+                    paymentReceived: true
                   })
                 } else {
                   Ticket.create({
-                    TicketTypeID: type.TicketTypeID
+                    ticketTypeID: type.ticketTypeID,
+                    eventID: generateRandom(1, 11),
                   })
                 }
               })
             }
           })
         })
+
+        resolve()
+
       } else (reject(console.log("No TicketTypes found to create Tickets for")))
     })
   })

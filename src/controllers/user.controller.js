@@ -16,21 +16,20 @@ module.exports = {
   },
 
   createUser(req, res, next) {
-    const body = req.body
+    const { firstname, middlename, lastname, gender, address, zipcode, city, country, phoneNumber } = req.body
 
     User.findOrCreate({ //Create a new User from the req body and check if the email already exists
-      where: { Email: body.Email },
+      where: { email: body.email },
       defaults: {
-        FirstName: body.Firstname,
-        MiddleName: body.Middlename,
-        LastName: body.Lastname,
-        Gender: body.Gender,
-        Address: body.Address,
-        Zipcode: body.Zipcode,
-        City: body.City,
-        Country: body.Country,
-        PhoneNumber: body.PhoneNumber,
-        IBAN: body.IBAN
+        firstname,
+        middlename,
+        lastname,
+        gender,
+        address,
+        zipcode,
+        city,
+        country,
+        phoneNumber
       }
     }).then(([user, created]) => {
       if (created) { // No email found, so creating a new user

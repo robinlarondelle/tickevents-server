@@ -3,22 +3,22 @@ const db = require("../config/identity-database")
 
 const verificationToken = db.define('VerificationTokens', {
 
-  VerificationTokenID: {
+  verificationTokenID: {
     type: Sequelize.INTEGER,
     allowNull: false,
     autoIncrement: true,
     primaryKey: true
   },
   
-  IdentityUserID: {
+  identityUserID: {
     type: Sequelize.INTEGER,
     references: {
       model: "IdentityUsers",
-      key: 'IdentityUserID'
+      key: 'identityUserID'
     }
   },
 
-  Token: {
+  token: {
     type: Sequelize.STRING
   }
 }, {
