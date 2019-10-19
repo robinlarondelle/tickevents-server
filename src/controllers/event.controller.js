@@ -73,6 +73,12 @@ module.exports = {
 
   //TODO: Create purchase Ticket endpoint
   purchaseTicketforEvent(req, res, next) {
+    
+
+
+
+
+
 
     // validator.validatePurchaseTicketBody(req.body).then(() => {
     //   const {

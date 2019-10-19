@@ -11,6 +11,7 @@ const ModelUser = require('../models/user.model')
 const Event = require("../models/event.model")
 const Ticket = require("../models/ticket.model")
 const TicketTypes = require("../models/ticket-type.model")
+const VerificationTokens = require("../models/verificationtoken.model")
 
 
 module.exports = {
@@ -36,14 +37,17 @@ module.exports = {
 
 function clearDatabase() {
   return new Promise((resolve, reject) => {
-    Promise.all([
-      ModelUser.destroy({where: {}}),
-      IdentityUser.destroy({where: {}})
-    ]).then(() => {
-      Ticket.destroy({where: {}}).then(() => {
-        TicketTypes.destroy({where: {}}).then(() => {
-          Event.destroy({where: {}}).then(() => {
-            resolve(console.log("Dumped entire database."))
+
+    Ticket.destroy({where: {}}).then(() => {
+      TicketTypes.destroy({where: {}}).then(() => {
+        Event.destroy({where: {}}).then(() => {
+          ModelUser.destroy({where: {}}).then(() => {
+            VerificationTokens.destroy({where: {}}).then(() => {
+              IdentityUser.destroy({where: {}}).then(() => {
+                console.log("Dumped entire Database");
+                resolve()
+              })
+            })
           })
         })
       })

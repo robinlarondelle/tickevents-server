@@ -20,6 +20,10 @@ const verificationToken = db.define('VerificationTokens', {
 
   token: {
     type: Sequelize.STRING
+  },
+
+  validUntill: {
+    type: Sequelize.DATE
   }
 }, {
   freezeTableName: true

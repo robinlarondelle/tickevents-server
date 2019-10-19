@@ -16,17 +16,12 @@ const IdentityUser = db.define("IdentityUsers", {
     unique: true
   },
 
-  firstName: {
+  firstname: {
     type: Sequelize.STRING,
     allowNull: false
   },
 
-  middleName: {
-    type: Sequelize.STRING,
-    allowNull: true
-  },
-
-  lastName: {
+  lastname: {
     type: Sequelize.STRING,
     allowNull: false
   },
@@ -44,11 +39,7 @@ const IdentityUser = db.define("IdentityUsers", {
     defaultValue: false
   },
 
-  passwordHash: {
-    type: Sequelize.STRING
-  },
-
-  passwordSalt: {
+  password: {
     type: Sequelize.STRING
   }
 })

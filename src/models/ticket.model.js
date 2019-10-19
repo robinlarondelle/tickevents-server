@@ -16,15 +16,6 @@ const ticket = db.define("Tickets", {
     }
   },
 
-  // Havent decided yet if i want to use this value
-  // EventID: {
-  //   type: Sequelize.INTEGER,
-  //   references: {
-  //     model: "Events",
-  //     key: "EventID"
-  //   }
-  // },
-
   boughtBy: {
     type: Sequelize.INTEGER,
     references: {

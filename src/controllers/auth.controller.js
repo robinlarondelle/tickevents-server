@@ -18,161 +18,182 @@ module.exports = {
       if (!err) {
         if (idUser) {
 
-          const privateKey = fs.readFileSync('environment/keys/private_key.pem')
+          var payload = {
+            identityID: idUser.identityUserID,
+            email: idUser.email,
+            role: idUser.role
+          }          
 
-          try {
-            var payload = {
-              userID: idUser.identityUserID,
-              firstname: idUser.firstName,
-              middlename: idUser.middleName,
-              lastname: idUser.lastName,
-              email: idUser.email,
-              role: idUser.role
-            }
+          generateJWT(payload, (err, token) => {
+            if (!!!err) {
+              res.status(200).json({ token }).end()
 
-            var token = jwt.sign(payload, privateKey, {
-              expiresIn: '1h',
-              algorithm: 'RS256'
-            })
+            } else { next(new ErrorMessage("ServerError", err, 400)) }
+          })
+        } else next(new ErrorMessage("ServerError", info, 401))
+      } else {
 
-            res.status(200).json({ token }).end()
-
-          } catch (err) {
-            res.status(400).json(new ErrorMessage("JWTCreationError", 'something went wrong while creating a jwt token' + err, 400)).end()
-          }
-
-
-        } else next(new ErrorMessage("LookupUserError", info, 401))
-      } else next(new ErrorMessage("JWTTokenAuthenticationError", err, 401))
+        //TODO: create logging of invalid login
+        switch (err) {
+          case "Email not validated": next(new ErrorMessage("EmailValidationError", err, 401))
+          case "Incorrect Password" || 'Incorrect email': next(new ErrorMessage("InvalidCredentialsError", "Either your password or your email was not correct", 401))
+          default: next(new ErrorMessage("ServerError", err, 401))
+        }
+      }
     })(req, res)
   },
 
 
   registerUser(req, res, next) {
     validator.validateRegisterUserBody(req.body).then(() => {
-      const { firstname, middlename, lastname, email, password, passwordConf } = req.body
+      const { email, firstname, lastname, password, passwordConf } = req.body
 
       if (password === passwordConf) {
 
-        const passwordSalt = crypto.randomBytes(16).toString("hex")
-        var hash = crypto.createHmac('sha512', passwordSalt)
-        hash.update(password)
-
-        var passwordHash = hash.digest('hex')
+        const passwordSalt = crypto.randomBytes(16).toString("hex") // Create the salt
+        var hash = crypto.createHmac('sha512', passwordSalt) // Create a hashed string with the salt
+        hash.update(password) // Apply the hash on the password
+        var passwordHash = hash.digest('hex') // Transform hash to hexadecimal value
+        const passwordString = passwordSalt + "." + passwordHash //Create a new string to be stored in the database
 
         //Create a new user if the email doesnt exists in the database
         IdentityUser.findOrCreate({
-          where: { email: email },
+          where: { email },
           defaults: {
-            firstName: firstname,
-            middleName: middlename,
-            lastName: lastname,
-            passwordSalt: passwordSalt,
-            passwordHash: passwordHash,
+            firstname,
+            lastname,
+            password: passwordString
           }
-        }).then(([iduser, created]) => {
-          if (created) {
+        }).then(([idUser, created]) => {
+          if (created) { //user didnt exist
 
-            try {
-              const privateKey = fs.readFileSync('environment/keys/private_key.pem')
-              
+            //Create a new token to be send to the user to verify their email
+            VerificationToken.create({
+              identityUserID: idUser.identityUserID,
+              token: crypto.randomBytes(16).toString('hex'),
+              validUntill: moment().add(1, "hours")
+            }
+            ).then(createdToken => {
+
               try {
-                var jwtPayload = {
-                  userID: iduser.identityUserID,
-                  firstname: iduser.firstName,
-                  middlename: iduser.middleName,
-                  lastname: iduser.lastName,
-                  email: iduser.email,
-                  role: iduser.role
-                }                
-
-                var jwtToken = jwt.sign(jwtPayload, privateKey, {
-                  expiresIn: '1h',
-                  algorithm: 'RS256'
-                })
-                
-                const payload = { token: jwtToken }
-
-                //Create a new token to be send to the user to verify their email
-                VerificationToken.create({
-                  identityUserID: iduser.identityUserID,
-                  token: crypto.randomBytes(16).toString('hex')
-                }).then(token => {               
-
-                  try {
-                    Mailer.sendVerificationEmail(iduser.email, token.token, jwtToken, iduser.identityUserID) //Send verifictation email to newly registered user
-                    res.status(201).json({ "message": "success", payload }).end() //Return token so the user is logged in when registered  
-                  } catch(err) { next(new ErrorMessage("SendEmailError", err, 400))}
-
-                }).catch(err => next(new ErrorMessage("CreateVerificationTokenError", `${err}`, 400)))
-              } catch (err) { next(new ErrorMessage("JWTCreationError", err, 401)) }
-            } catch (err) { next(new ErrorMessage("PrivateKeyReadError", err, 401)) }
+                Mailer.sendVerificationEmail(idUser.email, createdToken.token, idUser.identityUserID) //Send verifictation email to newly registered user
+                res.status(201).json({ "message": "success" }).end()
+              } catch (err) { next(new ErrorMessage("ServerError", err, 400)) }
+            }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
           } else next(new ErrorMessage("DuplicateEmailError", `User with email ${email} already exists`, 400))
-        }).catch(err => next(new ErrorMessage("LookupIdentityUserError", `${err}`, 400)))
-      } else next(new ErrorMessage("PasswordMismatchError", `Passwords don't match`, 400))
-    }).catch(e => next(new ErrorMessage("RequestBodyError", e, 400)))
+        }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
+      } else next(new ErrorMessage("PasswordsDontMatchError", `Passwords dont match`, 400))
+    }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
   },
 
 
   //TODO: Add input validation
   verifyEmail(req, res, next) {
-    const { identityUserID, token: bodyToken } = req.body
+    const { identityUserID, token: userToken } = req.body
 
-    VerificationToken.findOne({ where: { identityUserID } }).then(token => {
-      if (token) { //Check if there was a token found with given UserID
-        if (token.token == bodyToken) { //Check if the given token matches the registered token
+    VerificationToken.findOne({ where: { identityUserID } }).then(verificationToken => {
+      if (verificationToken) { //Check if there was a token found with given UserID
+        if (verificationToken.token == userToken) { //Check if the given token matches the registered token
 
           //Get current date and date of token creation to calculate difference
-          creationDate = moment(token.createdAt)
+          expiryDate = moment(verificationToken.validUntill)
           today = moment()
 
-          //Calculate difference between token generation and moment of request
-          const differenceInHours = moment.duration(today.diff(creationDate)).asHours()
-          if (differenceInHours <= 24) {
+          if (today - expiryDate < 0) { //token is still valid if today - expiryDate is more than 0
 
-            IdentityUser.update({ // Set Email Confirmed Property to true
-              emailConfirmedYN: true
-            }, {
+            IdentityUser.update({ emailConfirmedYN: true }, {
               where: { identityUserID }
-            }).then(updated => {
+            }).then(() => {
+              IdentityUser.findByPk(identityUserID).then(idUser => {
 
-              //Remove used token from database
-              VerificationToken.destroy({ where: { verificationTokenID: token.verificationTokenID } }).then(destroyed => {
-                IdentityUser.findOne({ where: { identityUserID } }).then(iduser => {
-                  ModelUser.findOrCreate({ //Create a new user with known details in the Model Database
-                    where: { email: iduser.email }, defaults: {
-                      firstName: iduser.firstName,
-                      middleName: iduser.middleName,
-                      lastName: iduser.lastName
+                VerificationToken.destroy({
+                  where: {
+                    verificationTokenID: verificationToken.verificationTokenID
+                  }
+                }).then(destoyed => {
+
+                  ModelUser.findOrCreate({
+                    where: {
+                      email: idUser.email
+                    }, defaults: {
+                      email: idUser.email,
+                      firstname: idUser.firstname,
+                      lastname: idUser.lastname
                     }
                   }).then(([user, created]) => {
-                    if (created) {
 
+                    if (created) {
                       const payload = {
-                        "user-created": "success",
-                        "email-verified": "success",
-                        user: user,
-                        "token": jwt
+                        userID: user.userID,
+                        identityID: idUser.identityID,
+                        role: idUser.role
                       }
-                      res.status(201).json(payload).end()
-                    } else next(new ErrorMessage("AlreadyVerifiedEmailError", `There already exists an Account with email ${iduser.Email}`, 200))
-                  }).catch(err => next(new ErrorMessage("NoModelUserFound", `${err}`, 400)))
-                }).catch(err => next(new ErrorMessage("NoIdentityUserFound", `${err}`, 400)))
-              }).catch(err => next(new ErrorMessage("DestroyTokenError", `${err}`, 400)))
-            }).catch(err => next(new ErrorMessage("IdentityUserUpdateError", `${err}`, 400)))
-          } else next(new ErrorMessage("ExpiredTokenError", `Token has expired. Please request a new token for IdentityUserID ${identityUserID}`, 200))
-        } else next(new ErrorMessage("TokenMismatchError", `Token ${Token} did not match registered token for IdentityUserID ${identityUserID}`, 400))
-      } else next(new ErrorMessage("TokenMissingError", `No token with IdentityUserID ${identityUserID} found`, 200))
+
+                      generateJWT(payload, (err, token) => {
+                        if (!!!err) {
+                          res.status(201).json({token}).end()
+                        } else next(new ErrorMessage("ServerError", err, 400))
+                      })
+                    } else next(new ErrorMessage("ServerError", err, 400))
+                  }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
+                }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
+              }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
+            }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
+          } else next(new ErrorMessage("TokenExpiredError", "Token Expired. Please request a new one", 401))
+        } else next(new ErrorMessage("TokenMismatchError", `Token ${userToken} did not match registered token for IdentityUserID ${identityUserID}`, 400))
+      } else next(new ErrorMessage("TokenMissingError", `No token with IdentityUserID ${identityUserID} found`, 400))
     }).catch(err => next(new ErrorMessage("TokenVerificationError", `${err}`, 400)))
   },
 
 
   resendVerificationEmail(req, res, next) {
+    const { email } = req.body
+
+    IdentityUser.findOne({ where: { email } }).then(idUser => {
+      console.log(idUser);
+      const identityUserID = idUser.identityUserID
+      VerificationToken.findOne({ where: { identityUserID } }).then(token => {
+        console.log(token);
+
+        if (!!token) {
+          const verificationTokenID = token.verificationTokenID
+          VerificationToken.destroy({ where: { verificationTokenID } }).then(result => {
+            console.log(result);
+          })
+        } else {
+          console.log("No Token found");
+        }
+
+        VerificationToken.create({
+          identityUserID: iduser.identityUserID,
+          token: crypto.randomBytes(16).toString('hex')
+        }).then(token => {
+          console.log(token);
+          res.status(200).json({ "message": "success" }).end()
+
+        }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
+      }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
+    }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
 
   },
 
 
   getPublicKey(req, res, next) {
+    res.status(503).end()
+  }
+}
 
+function generateJWT(payload, callback) {
+  const privateKey = fs.readFileSync('environment/keys/private_key.pem')
+
+  try {
+    var token = jwt.sign(payload, privateKey, {
+      expiresIn: '1h',
+      algorithm: 'RS256'
+    })    
+
+    callback(null, token)
+  } catch (e) {
+    callback(e)
   }
 }

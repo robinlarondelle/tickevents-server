@@ -22,13 +22,14 @@ passport.use(new LocalStrategy({ usernameField: "email" }, (email, password, don
 
 //If the hashed password equals the saved hashed password, then it must be equal. This way, we dont have to save the password to the db
 function validatePassword(user, password) {
-  const { passwordSalt } = user
+  const passwordSalt = user.password.split(".")[0]
+  const passwordHash = user.password.split(".")[1]
 
-  var pre_hash = crypto.createHmac('sha512', passwordSalt)
-  pre_hash.update(password)
-  var hash = pre_hash.digest('hex')
+  var hash = crypto.createHmac('sha512', passwordSalt)
+  hash.update(password)
+  var passwordString = hash.digest('hex')
 
-  return user.passwordHash == hash
+  return passwordHash == passwordString
 }
 
 // Exporting our configured passport

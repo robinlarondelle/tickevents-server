@@ -18,7 +18,6 @@ const cors = require("cors") // Access control
 const fs = require('fs')
 
 
-
 //Local imports
 const passport = require("./config/passport/passport") // Passport.js to secure the API
 const modelDb = require("./config/models-database")
@@ -29,8 +28,8 @@ const app = express()
 
 
 //Parameters
-const forceDatabaseReset = true; //Tell Seuqelize to drop all data and update table structure    
-const seedDatabase = true; //Fill the database with fake data
+const forceDatabaseReset = false; //Tell Seuqelize to drop all data and update table structure    
+const seedDatabase = false; //Fill the database with fake data
 
 
 // Setup express app
@@ -49,7 +48,7 @@ const eventRoutes = require("./routes/event.routes")
 
 
 // Unsecured Endpoints
-app.use("/api", authRoutes)
+app.use("/api/auth", authRoutes)
 app.use("/api/events", eventRoutes)
 
 
@@ -60,12 +59,13 @@ app.use( "*", (req, res, next) => {
 
   try {
     fs.readFile('environment/keys/public_key.pem', (err, key) => {      
-      if (err) next(new ErrorMessage("PublicKeyFetchError", err, 400))
+      if (err) next(new ErrorMessage("ServerError", err, 400))
       else {     
         try {
           const payload = jwt.verify(token, Buffer.from(key).toString())
           req.payload = payload
           next()
+          
         } catch (err) {
           next(new ErrorMessage("JWTTokenExpired", err, 401))
         }
@@ -77,13 +77,11 @@ app.use( "*", (req, res, next) => {
 })
 
 
-
 //Secured endpoints
 app.use(`/api/tokens`, tokenRoutes)
 app.use("/api/users", userRoutes)
 app.use("/api/tickets", ticketRoutes)
 //TODO: Add Logging endpoint
-
 
 
 //Catch all non existing endpoints

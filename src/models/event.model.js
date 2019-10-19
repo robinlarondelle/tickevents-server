@@ -68,7 +68,7 @@ const event = db.define("Events", {
     type: Sequelize.INTEGER,
     allowNull: false,
     defaultValue: 0
-  },
+  }
 
   //TODO: Add Active status
 })

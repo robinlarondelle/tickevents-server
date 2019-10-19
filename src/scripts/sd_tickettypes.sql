@@ -23,3 +23,6 @@ insert into TicketTypes (ticketTypeID, eventID, name, availability, pricePerTick
 insert into TicketTypes (ticketTypeID, eventID, name, availability, pricePerTicket) values (23, 4, 'pellentesque', 220, 2290);
 insert into TicketTypes (ticketTypeID, eventID, name, availability, pricePerTicket) values (24, 9, 'quisque', 90, 4260);
 insert into TicketTypes (ticketTypeID, eventID, name, availability, pricePerTicket) values (25, 10, 'id', 30, 4590);
+insert into TicketTypes (ticketTypeID, eventID, name, availability, pricePerTicket) values (26, 2, 'semper', 200, 799);
+insert into TicketTypes (ticketTypeID, eventID, name, availability, pricePerTicket) values (27, 2, 'quisque', 50, 1599);
+insert into TicketTypes (ticketTypeID, eventID, name, availability, pricePerTicket) values (28, 2, 'nulla', 25, 4099);

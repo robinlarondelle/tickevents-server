@@ -16,17 +16,12 @@ const user = db.define("Users", {
     unique: true
   },
 
-  firstName: {
+  firstname: {
     type: Sequelize.STRING,
     allowNull: false
   },
 
-  middleName: {
-    type: Sequelize.STRING,
-    allowNull: true
-  },
-
-  lastName: {
+  lastname: {
     type: Sequelize.STRING,
     allowNull: false
   },
@@ -38,7 +33,6 @@ const user = db.define("Users", {
       isIn: [['Male', 'Female', 'Other']]
     }
   },
-
   
   address: {
     type: Sequelize.STRING,
@@ -72,15 +66,7 @@ const user = db.define("Users", {
       is: /^(((\\+31|0|0031)6){1}[1-9]{1}[0-9]{7})$/i
     },
     allowNull: true
-  },
-
-  IBAN: {
-    type: Sequelize.STRING,
-    validate: { //Only dutch banks for now
-      is: /^[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}$/
-    },
-    allowNull: true
-  },
+  }
 })
 
 module.exports = user;
