@@ -1,6 +1,6 @@
 const Sequelize = require("sequelize")
 const db = require("../config/identity-database")
-
+const moment = require("moment")
 const verificationToken = db.define('VerificationTokens', {
 
   verificationTokenID: {
@@ -19,11 +19,14 @@ const verificationToken = db.define('VerificationTokens', {
   },
 
   token: {
-    type: Sequelize.STRING
+    type: Sequelize.STRING,
+    allowNull: false
   },
 
   validUntill: {
-    type: Sequelize.DATE
+    type: Sequelize.DATE,
+    allowNull: false,
+    defaultValue: new Date(new Date().getTime() + 1000 * 60 * 60 * 1) //1 hour ahead
   }
 }, {
   freezeTableName: true

@@ -1,4 +1,5 @@
 const User = require("../models/user.model")
+const IdentityUser = require("../models/identity.user.model")
 const ErrorMessage = require("../models/error-message.model")
 
 module.exports = {
@@ -13,6 +14,24 @@ module.exports = {
     User.findByPk(req.params.id).then(users => {
       res.status(200).json(users).end()
     })
+  },
+
+  getIdentityUserByID(req, res, next) {
+    IdentityUser.findByPk(req.params.id).then(identityUser => {
+      if (!!identityUser) {
+
+        const payload = {
+          identityUserID: identityUser.identityUserID,
+          email: identityUser.email,
+          firstname: identityUser.firstname,
+          lastname: identityUser.lastname,
+          role: identityUser.role,
+          emailConfirmedYN: identityUser.emailConfirmedYN
+        }
+        res.status(200).json(payload).end()
+
+      } else next(new ErrorMessage("IdentityUserNotFound", `IdentityUser with ID ${req.params.id} was not found.`, 404))
+    }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
   },
 
   createUser(req, res, next) {

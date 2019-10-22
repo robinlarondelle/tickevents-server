@@ -43,6 +43,7 @@ app.use(cors('*')) //TODO: set access to only Angular and Flutter Applications
 const authRoutes = require("./routes/auth.routes")
 const tokenRoutes = require(`./routes/token.routes`)
 const userRoutes = require("./routes/user.routes")
+const identityRoutes = require("./routes/identity.routes")
 const ticketRoutes = require("./routes/ticket.routes")
 const eventRoutes = require("./routes/event.routes")
 
@@ -50,13 +51,14 @@ const eventRoutes = require("./routes/event.routes")
 // Unsecured Endpoints
 app.use("/api/auth", authRoutes)
 app.use("/api/events", eventRoutes)
+app.use("/api/users/identity", identityRoutes)
 
 
 // Endpoint authentication Middleware
 app.use( "*", (req, res, next) => {  
   let token = req.headers['authorization']
   token = token.split(" ")[1] // remove Bearer from token and get token part from .split() array  
-
+  
   try {
     fs.readFile('environment/keys/public_key.pem', (err, key) => {      
       if (err) next(new ErrorMessage("ServerError", err, 400))
@@ -78,8 +80,8 @@ app.use( "*", (req, res, next) => {
 
 
 //Secured endpoints
-app.use(`/api/tokens`, tokenRoutes)
 app.use("/api/users", userRoutes)
+app.use(`/api/tokens`, tokenRoutes)
 app.use("/api/tickets", ticketRoutes)
 //TODO: Add Logging endpoint
 

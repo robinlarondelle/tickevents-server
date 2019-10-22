@@ -32,5 +32,6 @@ function validatePassword(user, password) {
   return passwordHash == passwordString
 }
 
+
 // Exporting our configured passport
 module.exports = passport;
