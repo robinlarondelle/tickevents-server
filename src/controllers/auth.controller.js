@@ -46,44 +46,40 @@ module.exports = {
 
 
   register(req, res, next) {
-    validator.validateRegisterUserBody(req.body).then(() => {
-      const { email, firstname, lastname, password, passwordConf } = req.body
+    const { email, firstname, lastname, password, passwordConf } = req.body
 
-      if (password === passwordConf) {
+    if (password == passwordConf) {
+      generatePassword(password, (err, passwordString) => {
+        if (!err) {
 
-        generatePassword(password, (err, passwordString) => {
-          if (!err) {
+          //Create a new user if the email doesnt exists in the database
+          IdentityUser.findOrCreate({
+            where: { email },
+            defaults: {
+              firstname,
+              lastname,
+              password: passwordString
+            }
+          }).then(([idUser, created]) => {            
+            if (created) { //user didnt exist
 
-            //Create a new user if the email doesnt exists in the database
-            IdentityUser.findOrCreate({
-              where: { email },
-              defaults: {
-                firstname,
-                lastname,
-                password: passwordString
-              }
-            }).then(([idUser, created]) => {
-              if (created) { //user didnt exist
+              //Create a new token to be send to the user to verify their email
+              VerificationToken.create({
+                identityUserID: idUser.identityUserID,
+                token: crypto.randomBytes(16).toString('hex')
+              }).then(createdToken => {
+                Mailer.sendVerificationEmail(idUser.email, idUser.identityUserID, createdToken.token, (err, success) => {
+                  if (!err) {
 
-                //Create a new token to be send to the user to verify their email
-                VerificationToken.create({
-                  identityUserID: idUser.identityUserID,
-                  token: crypto.randomBytes(16).toString('hex'),
-                  validUntill: moment().add(1, "hours")
-                }
-                ).then(createdToken => {
-
-                  try {
-                    Mailer.sendVerificationEmail(idUser.email, createdToken.token, idUser.identityUserID) //Send verifictation email to newly registered user
                     res.status(201).json({ "message": "success" }).end()
-                  } catch (err) { next(new ErrorMessage("ServerError", err, 400)) }
-                }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
-              } else next(new ErrorMessage("ServerError", err, 400))
-            })
-          } else next(new ErrorMessage("DuplicateEmailError", `User with email ${email} already exists`, 400))
-        }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
-      } else next(new ErrorMessage("PasswordsDontMatchError", `Passwords dont match`, 400))
-    }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
+                  } else next(new ErrorMessage("ServerError", err, 400))
+                })
+              }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
+            } else next(new ErrorMessage("ServerError", err, 400))
+          }).catch(err => next(new ErrorMessage("fdsafasdfdsa", err, 400)))
+        } else next(new ErrorMessage("DuplicateEmailError", `User with email ${email} already exists`, 400))
+      })
+    } else next(new ErrorMessage("PasswordsDontMatchError", `Passwords dont match`, 400))
   },
 
 
@@ -195,7 +191,7 @@ module.exports = {
                       idUser.update({ password: passwordString }).then(updatedUser => {
                         if (updatedUser) {
                           idUserToken.destroy()
-                          
+
                           res.status(200).json({ "status": "success" }).end()
                         } else next(new ErrorMessage("ServerError", err, 400))
                       }).catch(err => next(new ErrorMessage("ServerError", err, 400)))

@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 
 module.exports = {
-  sendVerificationEmail(userEmail, verificationToken, identityUserID, callback) {
+  sendVerificationEmail(userEmail, identityUserID, verificationToken, callback) {
     const transporter = nodemailer.createTransport({
       service: 'hotmail',
       auth: {
