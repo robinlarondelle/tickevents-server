@@ -1,5 +1,10 @@
 const Sequelize = require("sequelize")
 const db = require("../config/identity-database")
+const roles = Sequelize.ENUM([
+  'CUSTOMER',
+  'ADMIN',
+  'EVENT_OWNER'
+])
 
 const IdentityUser = db.define("IdentityUsers", {
   identityUserID: {
@@ -27,11 +32,9 @@ const IdentityUser = db.define("IdentityUsers", {
   },
 
   role: {
-    type: Sequelize.ENUM([
-      'customer',
-      'admin',
-      'event-owner'
-    ])
+    type: Sequelize.ENUM,
+    values: ['customer', 'event_owner', 'admin', 'ceo'],
+    defaultValue: 'customer'
   },
 
   emailConfirmedYN: {

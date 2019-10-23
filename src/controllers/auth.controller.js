@@ -111,9 +111,11 @@ module.exports = {
                   }).then(([user, created]) => {
 
                     if (created) {
-                      const payload = {
-                        userID: user.userID,
-                        identityID: identityUser.identityID,
+                      var payload = {
+                        identityID: identityUser.identityUserID,
+                        email: identityUser.email,
+                        firstname: identityUser.firstname,
+                        lastname: identityUser.lastname,
                         role: identityUser.role
                       }
 
@@ -157,7 +159,7 @@ module.exports = {
                 else next(new ErrorMessage("ServerError", err, 400))
               })
             } else if (purpose == "/tokens/resend-verification-email") {
-              Mailer.sendVerificationEmail(idUser.email, createdToken.token, idUser.identityUserID, (err, success) => {
+              Mailer.sendVerificationEmail(idUser.email, idUser.identityUserID, createdToken.token, (err, success) => {
 
                 if (success) res.status(200).json({ "message": "success" }).end()
                 else next(new ErrorMessage("ServerError", err, 400))
@@ -182,7 +184,6 @@ module.exports = {
 
               expiryDate = moment(idUserToken.validUntill)
               today = moment()
-
               if (idUserToken.token == token) {
                 if (today - expiryDate < 0) {
 
@@ -190,9 +191,9 @@ module.exports = {
                     if (!err) {
                       idUser.update({ password: passwordString }).then(updatedUser => {
                         if (updatedUser) {
-                          idUserToken.destroy()
-
-                          res.status(200).json({ "status": "success" }).end()
+                          idUserToken.destroy().then(() => {
+                            res.status(200).json({ "status": "success" }).end()
+                          }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
                         } else next(new ErrorMessage("ServerError", err, 400))
                       }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
                     } else next(new ErrorMessage("ServerError", err, 400))

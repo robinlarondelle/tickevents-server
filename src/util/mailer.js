@@ -58,7 +58,7 @@ module.exports = {
     const mailOptions = {
       from: process.env.EMAIL,
       to: userEmail,
-      subject: 'TickEvents: Bevestig je email!',
+      subject: 'TickEvents: wachtwoord vergeten?',
       text: 
       
       `
