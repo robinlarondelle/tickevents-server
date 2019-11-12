@@ -1,6 +1,8 @@
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
 const User = require("../models/user.model")
 const IdentityUser = require("../models/identity.user.model")
 const ErrorMessage = require("../models/error-message.model")
+const StripeDetails = require("../models/stripe-details.model")
 
 module.exports = {
   getUsers(req, res, next) {
@@ -64,6 +66,35 @@ module.exports = {
 
       } else next(new ErrorMessage("DuplicateEmailError", `User with email ${body.Email} already exists`, 200))
     }).catch(err => next(new ErrorMessage("SearchUserError", `${err}`, 501)))
+  },
+
+
+  fetchStripeCredentials(req, res, next) {
+    const { code } = req.body
+
+    stripe.oauth.token({
+      grant_type: "authorization_code",
+      code
+    }).then(result => {
+      User.findByPk(req.payload.modelUserID).then(user => {
+        if (user) {
+
+          console.log();
+          
+          StripeDetails.create({
+            stripeUserID: result.stripe_user_id,
+            userID: user.userID,
+            refreshToken: result.refresh_token
+          }).then(stripeDetail => {
+            if (stripeDetail) {
+              console.log(stripeDetail.get());
+              
+              res.status(200).end()
+            } else next(new ErrorMessage("ServerError", `No ModelUser with userID ${req.payload.modelUserID} found.`, 404))
+          }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
+        } else next(new ErrorMessage("ServerError", `No ModelUser with userID ${req.payload.modelUserID} found.`, 404))
+      }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
+    }).catch(err => next(new ErrorMessage("ServerError", err, 400)))
   },
 
   //TBD

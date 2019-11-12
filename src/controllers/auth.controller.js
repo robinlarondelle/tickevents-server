@@ -17,20 +17,26 @@ module.exports = {
     passport.authenticate("local", (err, idUser, info) => { //Use passport to check if the credentials are correct
       if (!err) {
         if (idUser) {
+          ModelUser.findOne({where: {email: idUser.email}}).then(user => {
+            
+            if(user) {
 
-          var payload = {
-            identityID: idUser.identityUserID,
-            email: idUser.email,
-            firstname: idUser.firstname,
-            lastname: idUser.lastname,
-            role: idUser.role
-          }
-
-          generateJWT(payload, (err, token) => {
-            if (!!!err) {
-              res.status(200).json({ token }).end()
-            } else { next(new ErrorMessage("ServerError", err, 400)) }
-          })
+              var payload = {
+                identityID: idUser.identityUserID,
+                modelUserID: user.userID,
+                email: idUser.email,
+                firstname: idUser.firstname,
+                lastname: idUser.lastname,
+                role: idUser.role
+              }
+              
+              generateJWT(payload, (err, token) => {
+                if (!!!err) {
+                  res.status(200).json({ token }).end()
+                } else { next(new ErrorMessage("ServerError", err, 400)) }
+              })
+            } else next(new ErrorMessage("ServerError", "No ModelUser found", 401))
+          }).catch(err => next(new ErrorMessage("ServerError", err, 401)))
         } else next(new ErrorMessage("ServerError", info, 401))
       } else {
 
@@ -113,6 +119,7 @@ module.exports = {
                     if (created) {
                       var payload = {
                         identityID: identityUser.identityUserID,
+                        modelUserID: user.userID,
                         email: identityUser.email,
                         firstname: identityUser.firstname,
                         lastname: identityUser.lastname,
