@@ -46,6 +46,10 @@ module.exports = {
       }).catch(err => next(new ErrorMessage("TicketTypeFetchError", err, 400)))
   },
 
+  initializePurchase(req, res, next) {
+    
+  },
+
 
   // DEPRECATED
   // getTicketsForEvent(req, res, next) {
