@@ -2,8 +2,8 @@
   "development": {
     "models": {
       "username": "root",
-      "password": null,
-      "database": "TickEvents_dev",
+      "password": "root",
+      "database": "tickevents_dev",
       "host": "127.0.0.1",
       "dialect": "mysql",
       "pool": {
@@ -17,7 +17,7 @@
     "identity": {
       "username": "root",
       "password": null,
-      "database": "TickEvents_dev_identity",
+      "database": "tickEvents_dev_identity",
       "host": "127.0.0.1",
       "dialect": "mysql",
       "pool": {
@@ -33,7 +33,7 @@
     "models": {
       "username": "root",
       "password": null,
-      "database": "TickEvents_test",
+      "database": "tickevents_test",
       "host": "127.0.0.1",
       "dialect": "mysql",
       "pool": {
@@ -47,7 +47,7 @@
     "identity": {
       "username": "root",
       "password": null,
-      "database": "TickEvents_test_identity",
+      "database": "tickevents_test_identity",
       "host": "127.0.0.1",
       "dialect": "mysql",
       "pool": {
