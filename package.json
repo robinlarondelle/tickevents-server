@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "SET NODE_ENV=test& nodemon -r dotenv/config --exec mocha --recursive -R spec",
-    "start": "nodemon ./src/server.js"
+    "start": "SET NODE_ENV=development& nodemon ./src/server.js"
   },
   "repository": {
     "type": "git",

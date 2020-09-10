@@ -1,10 +1,6 @@
 //Decide what environment file to use
 if (process.env.NODE_ENV === "development") {
-  require("dotenv").config({ path: "./environment/dev.environment.env" })
-  console.log("\nAPI running in " + process.env.NODE_ENV + " mode \n")
-
-} else if (process.env.NODE_ENV === "production") {
-  require("dotenv").config({ path: "./environment/prod.environment.env" })
+  require("dotenv").config({ path: "./src/environment/environment.env" })
   console.log("\nAPI running in " + process.env.NODE_ENV + " mode \n")
 }
 
@@ -16,6 +12,7 @@ const bodyParser = require('body-parser') //Pase request body to JSON
 const jwt = require('jsonwebtoken');
 const cors = require("cors") // Access control
 const fs = require('fs')
+const mongoose = require("mongoose")
 
 
 //Local imports
@@ -37,6 +34,21 @@ app.use(bodyParser.json()) //Parse request body to JSON
 if (process.env.NODE_ENV === "development") app.use(morgan("dev")) //dont show all logs when in production mode
 app.use(passport.initialize())
 app.use(cors('*')) //TODO: set access to only Angular and Flutter Applications
+
+
+//Connect to the MongoDB Database
+mongoose.connect(process.env.mongoAtlasURL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('successfully connected to the database'))
+.catch(err => {
+  console.log('error connecting to the database')
+  console.log(err);
+
+  //Kill the service on error
+  process.exit()
+})
 
 
 // Routes

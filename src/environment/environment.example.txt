@@ -1,0 +1,2 @@
+mongoAtlasURL=<the url to the mongodb atlas>
+port=<the portnumber>
